@@ -1,0 +1,1038 @@
+{
+  "appId": "6836938250",
+  "derived": {
+    "appAssetLibraryAssets": {
+      "31c00019-7836-860a-8032-6f5c2b435bd2": {
+        "sourceFileChecksum": "0c126e8df2f23204d9dd43270febd3ff"
+      },
+      "4d800019-7836-860a-802c-113bb66b4b0a": {
+        "sourceFileChecksum": "7bc46be856b8fdcb78c1de217e3f8170"
+      },
+      "4e400019-7836-860a-8024-18455cea4e8f": {
+        "sourceFileChecksum": "a9f1888a893265e9b6d97fdda6baf1ad"
+      },
+      "4ec00019-7836-860a-8022-cebac50905f3": {
+        "sourceFileChecksum": "e001dc618ae296ad6c33fa8955e147a1"
+      },
+      "50800019-7836-860a-801a-bf2e74f93639": {
+        "renditionChecksum": "363bfca035d0c62429f3b3169909a573",
+        "sourceFileChecksum": "83e04ac6ac41173c71d2010dcf8561d8"
+      },
+      "57400019-7836-860a-802c-cfe708294527": {
+        "sourceFileChecksum": "2b3b76fcc9d8ebd51e51d6fb228bee7e"
+      },
+      "5f400019-7836-860a-8010-c287187420dd": {
+        "sourceFileChecksum": "c44287ce8227d4181b2ed2f2bb8402d4"
+      },
+      "68c00019-7836-860a-8037-69d227ef746b": {
+        "sourceFileChecksum": "8308f1c463b3b129e9bcdc5596d0b0ed"
+      },
+      "74c00019-7836-860a-8002-5f65b2cbd554": {
+        "sourceFileChecksum": "d68ad5cdb29a3f7ee5d879fe12ccdb58"
+      },
+      "7ec00019-7836-860a-8034-7f2c25a2dc48": {
+        "renditionChecksum": "289595268157c9c8b62428c60d0d29dd",
+        "sourceFileChecksum": "b435cc8451717bc8a3388880dce66c7a"
+      },
+      "87400019-7836-860a-802c-7fdb29457acf": {
+        "sourceFileChecksum": "a7b699948626478bfd42663b6a3de004"
+      },
+      "8dc00019-7836-860a-8038-cafdeeb29587": {
+        "sourceFileChecksum": "c83a4a11f22769ce31ceac579c9dfd72"
+      },
+      "8f400019-7836-860a-8017-f8e4af0c2265": {
+        "sourceFileChecksum": "1b444b9bf9b6ebc2955ef37f057bdbc5"
+      },
+      "a0400019-7836-860a-803c-578812429f22": {
+        "sourceFileChecksum": "d28c0c97d8ada4d829b0ff2da5b35c82"
+      },
+      "b0000019-7836-860a-8007-bb3516005cce": {
+        "renditionChecksum": "3eafee1dfe95796cb1b41e2b76e3f7d1",
+        "sourceFileChecksum": "108ffdc4137af6a448003423813cb1e8"
+      },
+      "bd800019-7836-860a-8008-586fb5407559": {
+        "sourceFileChecksum": "5b12efe1491499b7a40ab830d529cce2"
+      },
+      "bfc00019-7836-860a-802d-e36f4a05bf82": {
+        "sourceFileChecksum": "03b62770ecf303bb87050050bba80a71"
+      },
+      "c5000019-7836-860a-803d-5671b8c9cc36": {
+        "sourceFileChecksum": "1688a0d91500a82cbf8323a9d3364cfb"
+      },
+      "cac00019-7836-860a-801f-9e0f3d75b49b": {
+        "renditionChecksum": "a5da403fafe7dcb645519593ae697592",
+        "sourceFileChecksum": "7fcc0944d7cd704b008476231b6f4a62"
+      },
+      "d5c00019-7836-860a-8025-556b12be147b": {
+        "renditionChecksum": "6c0857cedb38a654f179a5748d146b2b",
+        "sourceFileChecksum": "bc8c16f6086299ce1580e16a357dca7e"
+      },
+      "e1800019-7836-860a-8018-d8d6899c2155": {
+        "sourceFileChecksum": "00fcd0a626e0f862811eddf96321421c"
+      },
+      "e2400019-7836-860a-803d-2304c21dedc4": {
+        "sourceFileChecksum": "8c6da5cae5ac9c3701e69f8018dedfb6"
+      },
+      "eb800019-7836-860a-8023-f563c99fda20": {
+        "sourceFileChecksum": "c322cf8dd14fbee7e1de9d50fd46a98a"
+      }
+    },
+    "pricing": {
+      "automaticPrices": [
+        {
+          "customerPrice": "0",
+          "territory": "AFG"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "AGO"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "AIA"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "ALB"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "ARE"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "ARG"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "ARM"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "ATG"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "AUS"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "AUT"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "AZE"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "BEL"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "BEN"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "BFA"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "BGR"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "BHR"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "BHS"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "BIH"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "BLR"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "BLZ"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "BMU"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "BOL"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "BRA"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "BRB"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "BRN"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "BTN"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "BWA"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "CAN"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "CHE"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "CHL"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "CHN"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "CIV"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "CMR"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "COD"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "COG"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "COL"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "CPV"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "CRI"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "CYM"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "CYP"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "CZE"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "DEU"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "DMA"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "DNK"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "DOM"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "DZA"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "ECU"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "EGY"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "ESP"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "EST"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "FIN"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "FJI"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "FRA"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "FSM"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "GAB"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "GBR"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "GEO"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "GHA"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "GMB"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "GNB"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "GRC"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "GRD"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "GTM"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "GUY"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "HKG"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "HND"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "HRV"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "HUN"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "IDN"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "IND"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "IRL"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "IRQ"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "ISL"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "ISR"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "ITA"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "JAM"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "JOR"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "JPN"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "KAZ"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "KEN"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "KGZ"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "KHM"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "KNA"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "KOR"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "KWT"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "LAO"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "LBN"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "LBR"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "LBY"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "LCA"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "LKA"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "LTU"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "LUX"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "LVA"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "MAC"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "MAR"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "MDA"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "MDG"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "MDV"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "MEX"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "MKD"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "MLI"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "MLT"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "MMR"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "MNE"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "MNG"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "MOZ"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "MRT"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "MSR"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "MUS"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "MWI"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "MYS"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "NAM"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "NER"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "NGA"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "NIC"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "NLD"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "NOR"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "NPL"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "NRU"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "NZL"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "OMN"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "PAK"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "PAN"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "PER"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "PHL"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "PLW"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "PNG"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "POL"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "PRT"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "PRY"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "QAT"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "ROU"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "RUS"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "RWA"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "SAU"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "SEN"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "SGP"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "SLB"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "SLE"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "SLV"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "SRB"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "STP"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "SUR"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "SVK"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "SVN"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "SWE"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "SWZ"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "SYC"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "TCA"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "TCD"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "THA"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "TJK"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "TKM"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "TON"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "TTO"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "TUN"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "TUR"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "TWN"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "TZA"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "UGA"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "UKR"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "URY"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "UZB"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "VCT"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "VEN"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "VGB"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "VNM"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "VUT"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "XKS"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "YEM"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "ZAF"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "ZMB"
+        },
+        {
+          "customerPrice": "0",
+          "territory": "ZWE"
+        }
+      ]
+    }
+  },
+  "formatVersion": 2,
+  "gitignore": "created",
+  "resources": {
+    "ageRatingDeclaration": {
+      "fields": {
+        "advertising": false,
+        "ageAssurance": false,
+        "ageRatingOverrideV2": "NONE",
+        "alcoholTobaccoOrDrugUseOrReferences": "NONE",
+        "contests": "NONE",
+        "gambling": false,
+        "gamblingSimulated": "NONE",
+        "gunsOrOtherWeapons": "NONE",
+        "healthOrWellnessTopics": true,
+        "horrorOrFearThemes": "NONE",
+        "koreaAgeRatingOverride": "NONE",
+        "lootBox": false,
+        "matureOrSuggestiveThemes": "NONE",
+        "medicalOrTreatmentInformation": "NONE",
+        "messagingAndChat": false,
+        "parentalControls": false,
+        "profanityOrCrudeHumor": "NONE",
+        "sexualContentGraphicAndNudity": "NONE",
+        "sexualContentOrNudity": "NONE",
+        "socialMedia": false,
+        "unrestrictedWebAccess": false,
+        "userGeneratedContent": true,
+        "violenceCartoonOrFantasy": "NONE",
+        "violenceRealistic": "NONE",
+        "violenceRealisticProlongedGraphicOrSadistic": "NONE"
+      },
+      "id": "06454f45-5452-4d97-b956-51ed5e96e93a",
+      "type": "ageRatingDeclarations"
+    },
+    "app": {
+      "fields": {
+        "contentRightsDeclaration": "USES_THIRD_PARTY_CONTENT",
+        "primaryLocale": "en-US"
+      },
+      "id": "6836938250",
+      "type": "apps"
+    },
+    "appInfo": {
+      "fields": {
+        "primaryCategory": "FOOD_AND_DRINK",
+        "secondaryCategory": "UTILITIES"
+      },
+      "id": "06454f45-5452-4d97-b956-51ed5e96e93a",
+      "type": "appInfos"
+    },
+    "appInfoLocalization:en-US": {
+      "fields": {
+        "name": "Apron Buddy",
+        "privacyPolicyUrl": "https://bradlchr.github.io/Apron-Buddy/#privacy",
+        "subtitle": "Scan Recipes & Plan Meals"
+      },
+      "id": "830be9d5-6a39-478b-8dd9-ec166055935d",
+      "type": "appInfoLocalizations"
+    },
+    "appStoreReviewDetail:IOS:1.0": {
+      "fields": {
+        "contactEmail": "ctbbradley@gmail.com",
+        "contactFirstName": "Chris",
+        "contactLastName": "Bradley",
+        "contactPhone": "+1 913 424 2205",
+        "demoAccountRequired": false,
+        "notes": "No Apron Buddy account is required to use the recipe library. Recipes can remain on the device when iCloud is unavailable. iCloud sync and cookbook sharing require iCloud to be enabled.\n\nAdditional information requested from app review:\n1. Screen recording from my iPhone is attached\n2. The app's purpose is to store the user's recipes, import them via PDF or directly from webpage URLs. Organize recipes into cookbooks. Sync with iCloud and share cookbooks with your friends and family. It solves the problem of having a drawer full of recipe clippings from magazines or bookmarks in a browser. The recipes can be scanned, imported, organized, shared with others. The app then gives step-by-step directions in cooking mode. It also uses Apple Intelligence to generate meal plans using the user's stored recipes. These meal plans include a grocery list that can be exported to Reminders.\n3. No account needed. Signed in iCloud account required for syncing with other devices and sharing.\n4. None\n5. None\n6. N/A"
+      },
+      "id": "19d041cf-bf79-43f4-b835-aba8704aca71",
+      "type": "appStoreReviewDetails"
+    },
+    "appStoreReviewDetail:MAC_OS:1.0": {
+      "fields": {
+        "contactEmail": "ctbbradley@gmail.com",
+        "contactFirstName": "Chris",
+        "contactLastName": "Bradley",
+        "contactPhone": "+1 913 424 2205",
+        "demoAccountRequired": false,
+        "notes": "No Apron Buddy account is required to use the recipe library. Recipes can remain on the device when iCloud is unavailable. iCloud sync and cookbook sharing require iCloud to be enabled.\n\nUpdated from rejected App Review with requested information.\n 1. Screen recording from my iMac is attached\n2. The app's purpose is to store the user's recipes, import them via PDF or directly from webpage URLs. Organize recipes into cookbooks. Sync with iCloud and share cookbooks with your friends and family. It solves the problem of having a drawer full of recipe clippings from magazines or bookmarks in a browser. The recipes can be scanned, imported, organized, shared with others. The app then gives step-by-step directions in cooking mode. It also uses Apple Intelligence to generate meal plans using the user's stored recipes. These meal plans include a grocery list that can be exported to Reminders.\n3. No account needed. Signed in iCloud account required for syncing with other devices and sharing.\n4. None\n5. None\n6. N/A"
+      },
+      "id": "44eb7a80-fbaf-489f-a4f9-3df757d2db08",
+      "type": "appStoreReviewDetails"
+    },
+    "appStoreVersion:IOS:1.0": {
+      "fields": {
+        "copyright": "2026 Christopher Bradley",
+        "releaseType": "MANUAL",
+        "versionString": "1.0"
+      },
+      "id": "a8e82bb5-55df-401c-a222-7af81a7b8ba3",
+      "type": "appStoreVersions"
+    },
+    "appStoreVersion:MAC_OS:1.0": {
+      "fields": {
+        "copyright": "2026 Christopher Bradley",
+        "releaseType": "MANUAL",
+        "versionString": "1.0"
+      },
+      "id": "28d9f4c7-00ba-4a19-9b86-dd75afca31d7",
+      "type": "appStoreVersions"
+    },
+    "appStoreVersionLocalization:IOS:1.0:en-US": {
+      "fields": {
+        "description": "Your Complete Kitchen Companion\nEvery recipe, synced across iPhone, iPad, Mac & Watch.\n\nKeep family favorites, web finds, and weeknight staples together in a searchable recipe library. Apron Buddy helps you bring recipes in, make them your own, plan what to cook, and follow each step in the kitchen.\n\nScan Any Cookbook Page\nTurn printed pages and magazines into digital recipes in seconds.\nCapture one page or several with your camera. Apron Buddy reads the recipe so you can review and edit the ingredients and instructions before saving.\n\nClip From the Web & PDFs\nSkip the clutter—save just the ingredients and steps.\nImport a recipe from a website, PDF, text document, or recipe image. Batch import a folder of files, then review each recipe as it is added.\n\nCook Hands-Free\nFollow steps and run timers right from your Apple Watch.\nUse step-by-step cooking mode on iPhone, iPad, or Mac. Start recipe timers from the instructions and continue cooking with the paired Apple Watch.\n\nPlan Meals in Minutes\nBuild your weekly menu and auto-generate your grocery list.\nMake a meal plan around your schedule, special occasions, and food preferences. Start with your own recipes, choose how many people are eating, and plan for leftovers. Generate a grocery list grouped by category, keep it in Apron Buddy, or add items to a Reminders list.\n\nMAKE YOUR RECIPE LIBRARY YOURS\nCreate cookbooks, search and filter recipes, and add recipes to a cookbook from the recipe card. Rate and favorite dishes, write personal notes, save photos of the finished meal, and print recipes when you want a paper copy. Share a recipe or cookbook with others through iCloud.\n\nADJUST AS YOU COOK\nScale ingredient amounts when servings change and convert between measurement units. Edit imported recipes so the saved version matches the way you cook.\n\nYOUR APPLE DEVICES, IN SYNC\nUse Apron Buddy on iPhone, iPad, Mac, and Apple Watch. With iCloud enabled, your recipes and cookbooks stay in sync across your devices, ready for planning or cooking.",
+        "keywords": "recipe keeper,recipe manager,meal planning,cookbook,grocery list,recipe scanner,ingredients,cooking",
+        "promotionalText": "Clip recipes from anywhere—snap a photo of a cookbook page, import a PDF, or save from the web. Plan your week on Mac or iPad, and cook hands-free on iPhone & Watch.",
+        "supportUrl": "https://bradlchr.github.io/Apron-Buddy/#support"
+      },
+      "id": "cdb92a12-fe2c-4fba-a578-de999e6db506",
+      "type": "appStoreVersionLocalizations"
+    },
+    "appStoreVersionLocalization:MAC_OS:1.0:en-US": {
+      "fields": {
+        "description": "Your Complete Kitchen Companion\nEvery recipe, synced across iPhone, iPad, Mac & Watch.\n\nKeep family favorites, web finds, and weeknight staples together in a searchable recipe library. Apron Buddy helps you bring recipes in, make them your own, plan what to cook, and follow each step in the kitchen.\n\nScan Any Cookbook Page\nTurn printed pages and magazines into digital recipes in seconds.\nCapture one page or several with your camera. Apron Buddy reads the recipe so you can review and edit the ingredients and instructions before saving.\n\nClip From the Web & PDFs\nSkip the clutter—save just the ingredients and steps.\nImport a recipe from a website, PDF, text document, or recipe image. Batch import a folder of files, then review each recipe as it is added.\n\nCook Hands-Free\nFollow steps and run timers right from your Apple Watch.\nUse step-by-step cooking mode on iPhone, iPad, or Mac. Start recipe timers from the instructions and continue cooking with the paired Apple Watch.\n\nPlan Meals in Minutes\nBuild your weekly menu and auto-generate your grocery list.\nMake a meal plan around your schedule, special occasions, and food preferences. Start with your own recipes, choose how many people are eating, and plan for leftovers. Generate a grocery list grouped by category, keep it in Apron Buddy, or add items to a Reminders list.\n\nMAKE YOUR RECIPE LIBRARY YOURS\nCreate cookbooks, search and filter recipes, and add recipes to a cookbook from the recipe card. Rate and favorite dishes, write personal notes, save photos of the finished meal, and print recipes when you want a paper copy. Share a recipe or cookbook with others through iCloud.\n\nADJUST AS YOU COOK\nScale ingredient amounts when servings change and convert between measurement units. Edit imported recipes so the saved version matches the way you cook.\n\nYOUR APPLE DEVICES, IN SYNC\nUse Apron Buddy on iPhone, iPad, Mac, and Apple Watch. With iCloud enabled, your recipes and cookbooks stay in sync across your devices, ready for planning or cooking.",
+        "keywords": "recipe keeper,recipe manager,meal planning,cookbook,grocery list,recipe scanner,ingredients,cooking",
+        "promotionalText": "Clip recipes from anywhere—snap a photo of a cookbook page, import a PDF, or save from the web. Plan your week on Mac or iPad, and cook hands-free on iPhone & Watch.",
+        "supportUrl": "https://bradlchr.github.io/Apron-Buddy/#support"
+      },
+      "id": "27fbd4ae-fe72-429d-9ab7-83686cf52438",
+      "type": "appStoreVersionLocalizations"
+    },
+    "appStoreVersionPlacementGroup:IOS:1.0:en-US:APP_SCREENSHOT:IPAD_13_PROFILE": {
+      "fields": {
+        "appScreenshot": [
+          {
+            "checksum": "c322cf8dd14fbee7e1de9d50fd46a98a",
+            "fileName": "01-your-complete-kitchen-companion.png",
+            "fileSize": 1132095
+          },
+          {
+            "checksum": "7bc46be856b8fdcb78c1de217e3f8170",
+            "fileName": "02-scan-any-cookbook-page.png",
+            "fileSize": 719176
+          },
+          {
+            "checksum": "a7b699948626478bfd42663b6a3de004",
+            "fileName": "03-clip-web-and-pdfs.png",
+            "fileSize": 682414
+          },
+          {
+            "checksum": "a9f1888a893265e9b6d97fdda6baf1ad",
+            "fileName": "04-cook-hands-free.png",
+            "fileSize": 634118
+          },
+          {
+            "checksum": "2b3b76fcc9d8ebd51e51d6fb228bee7e",
+            "fileName": "05-plan-meals-in-minutes.png",
+            "fileSize": 559626
+          }
+        ]
+      },
+      "id": "cdb92a12-fe2c-4fba-a578-de999e6db506",
+      "type": "appAssetLibraryPlacements"
+    },
+    "appStoreVersionPlacementGroup:IOS:1.0:en-US:APP_SCREENSHOT:IPHONE_DYNAMIC_ISLAND_LARGE_PROFILE": {
+      "fields": {
+        "appScreenshot": [
+          {
+            "checksum": "c44287ce8227d4181b2ed2f2bb8402d4",
+            "fileName": "01-your-complete-kitchen-companion.png",
+            "fileSize": 3512809
+          },
+          {
+            "checksum": "8c6da5cae5ac9c3701e69f8018dedfb6",
+            "fileName": "02-scan-any-cookbook-page.png",
+            "fileSize": 575715
+          },
+          {
+            "checksum": "d68ad5cdb29a3f7ee5d879fe12ccdb58",
+            "fileName": "03-clip-web-and-pdfs.png",
+            "fileSize": 408533
+          },
+          {
+            "checksum": "1b444b9bf9b6ebc2955ef37f057bdbc5",
+            "fileName": "04-cook-hands-free.png",
+            "fileSize": 347468
+          },
+          {
+            "checksum": "8308f1c463b3b129e9bcdc5596d0b0ed",
+            "fileName": "05-plan-meals-in-minutes.png",
+            "fileSize": 765661
+          }
+        ]
+      },
+      "id": "cdb92a12-fe2c-4fba-a578-de999e6db506",
+      "type": "appAssetLibraryPlacements"
+    },
+    "appStoreVersionPlacementGroup:IOS:1.0:en-US:APP_SCREENSHOT:WATCH_ULTRA_PROFILE": {
+      "fields": {
+        "appScreenshot": [
+          {
+            "checksum": "0c126e8df2f23204d9dd43270febd3ff",
+            "fileName": "01-cook-hands-free.png",
+            "fileSize": 33132
+          },
+          {
+            "checksum": "e001dc618ae296ad6c33fa8955e147a1",
+            "fileName": "02-watch-timer.png",
+            "fileSize": 38346
+          },
+          {
+            "checksum": "5b12efe1491499b7a40ab830d529cce2",
+            "fileName": "03-timer-running.png",
+            "fileSize": 36325
+          }
+        ]
+      },
+      "id": "cdb92a12-fe2c-4fba-a578-de999e6db506",
+      "type": "appAssetLibraryPlacements"
+    },
+    "appStoreVersionPlacementGroup:MAC_OS:1.0:en-US:APP_SCREENSHOT:MAC_PROFILE": {
+      "fields": {
+        "appScreenshot": [
+          {
+            "checksum": "1688a0d91500a82cbf8323a9d3364cfb",
+            "fileName": "01-plan-on-mac.jpg",
+            "fileSize": 622528
+          },
+          {
+            "checksum": "00fcd0a626e0f862811eddf96321421c",
+            "fileName": "02-cook-hands-free.jpg",
+            "fileSize": 542374
+          },
+          {
+            "checksum": "03b62770ecf303bb87050050bba80a71",
+            "fileName": "03-detailed-instructions.jpg",
+            "fileSize": 676903
+          },
+          {
+            "checksum": "d28c0c97d8ada4d829b0ff2da5b35c82",
+            "fileName": "04-plan-your-meals.jpg",
+            "fileSize": 622905
+          },
+          {
+            "checksum": "c83a4a11f22769ce31ceac579c9dfd72",
+            "fileName": "05-import-recipes.jpg",
+            "fileSize": 607363
+          }
+        ]
+      },
+      "id": "27fbd4ae-fe72-429d-9ab7-83686cf52438",
+      "type": "appAssetLibraryPlacements"
+    },
+    "pricing": {
+      "fields": {
+        "baseTerritory": "USA",
+        "manualPrices": [
+          {
+            "customerPrice": "0",
+            "territory": "USA"
+          }
+        ]
+      },
+      "id": "6836938250",
+      "type": "appPriceSchedules"
+    }
+  }
+}

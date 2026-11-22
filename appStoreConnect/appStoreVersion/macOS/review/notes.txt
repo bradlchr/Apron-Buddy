@@ -1,0 +1,9 @@
+No Apron Buddy account is required to use the recipe library. Recipes can remain on the device when iCloud is unavailable. iCloud sync and cookbook sharing require iCloud to be enabled.
+
+Updated from rejected App Review with requested information.
+ 1. Screen recording from my iMac is attached
+2. The app's purpose is to store the user's recipes, import them via PDF or directly from webpage URLs. Organize recipes into cookbooks. Sync with iCloud and share cookbooks with your friends and family. It solves the problem of having a drawer full of recipe clippings from magazines or bookmarks in a browser. The recipes can be scanned, imported, organized, shared with others. The app then gives step-by-step directions in cooking mode. It also uses Apple Intelligence to generate meal plans using the user's stored recipes. These meal plans include a grocery list that can be exported to Reminders.
+3. No account needed. Signed in iCloud account required for syncing with other devices and sharing.
+4. None
+5. None
+6. N/A

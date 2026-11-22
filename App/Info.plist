@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>New Project</string>
+	<string>Apron Buddy</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -24,8 +24,35 @@
 	<false/>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.utilities</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>Apron Buddy links</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>apronbuddy</string>
+			</array>
+		</dict>
+	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Apron Buddy uses the camera to scan recipe pages and photograph finished dishes.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>Apron Buddy uses your selected contact’s name and email or phone number to invite them to a private recipe share when you ask Siri to share a recipe.</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>Apron Buddy checks your calendar for busy evenings and dinner plans when you ask it to create a meal plan.</string>
+	<key>NSRemindersUsageDescription</key>
+	<string>Apron Buddy adds grocery items to the Reminders list you choose.</string>
+	<key>NSRemindersFullAccessUsageDescription</key>
+	<string>Apron Buddy adds grocery items to the Reminders list you choose.</string>
+	<key>CKSharingSupported</key>
+	<true/>
 	<key>UILaunchScreen</key>
 	<dict/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
