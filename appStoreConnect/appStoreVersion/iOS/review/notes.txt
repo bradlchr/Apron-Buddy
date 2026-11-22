@@ -1,9 +1,7 @@
-No Apron Buddy account is required to use the recipe library. Recipes can remain on the device when iCloud is unavailable. iCloud sync and cookbook sharing require iCloud to be enabled.
+No Apron Buddy account is required. The app includes sample recipes, and the recipe library and cooking mode work without signing in to iCloud. iCloud is required for syncing between devices and sharing recipes or cookbooks.
 
-Additional information requested from app review:
-1. Screen recording from my iPhone is attached
-2. The app's purpose is to store the user's recipes, import them via PDF or directly from webpage URLs. Organize recipes into cookbooks. Sync with iCloud and share cookbooks with your friends and family. It solves the problem of having a drawer full of recipe clippings from magazines or bookmarks in a browser. The recipes can be scanned, imported, organized, shared with others. The app then gives step-by-step directions in cooking mode. It also uses Apple Intelligence to generate meal plans using the user's stored recipes. These meal plans include a grocery list that can be exported to Reminders.
-3. No account needed. Signed in iCloud account required for syncing with other devices and sharing.
-4. None
-5. None
-6. N/A
+To review the cooking changes, open Recipes, choose a sample recipe such as Lemon herb roast chicken, and tap Start cooking. Advance to a timed step, then tap Start timer and allow the system alarm prompt. Swipe down on the cooking sheet to minimize it, and tap the green cooking bubble to resume at the same step. Lock the iPhone to see the recipe’s Live Activity with Previous and Next controls and the separate timer Live Activity. The Dynamic Island presentation depends on the device and available space.
+
+Tap Finish on the last step to record the Last Cooked date, or update it from the recipe tile’s options menu. The date helps rotate recipes in Tonight’s Pick and new meal plans.
+
+Apron Buddy also imports recipes from website links or documents, organizes recipes into cookbooks, and builds meal plans with grocery lists that can be exported to Reminders. Apple Intelligence is optional for meal plan suggestions.
