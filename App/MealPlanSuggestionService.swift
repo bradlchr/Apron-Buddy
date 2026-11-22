@@ -194,7 +194,7 @@ enum MealPlanSuggestionService {
     let text = ([recipe.name, recipe.summary, recipe.category] + recipe.ingredients.map(\.name) + recipe.goodFor.map(\.title))
       .joined(separator: " ")
       .localizedLowercase
-    var score = recipe.rating * 3 + (recipe.isFavorite ? 2 : 0)
+    var score = RecipeRotation.score(recipe, on: slot.date)
     let tokens = (occasion + " " + constraints)
       .localizedLowercase
       .split(whereSeparator: { !$0.isLetter && !$0.isNumber })
@@ -226,16 +226,18 @@ enum MealPlanSuggestionService {
     mealsPerDay: Int
   ) async -> [MealPlanAISelection]? {
     let openSlots = Array(slots.filter { !$0.isSkipped }.prefix(24))
-    let availableRecipes = Array(recipes.prefix(40))
+    let referenceDate = slots.first?.date ?? .now
+    let availableRecipes = Array(RecipeRotation.ranked(recipes, on: referenceDate).prefix(40))
     guard !openSlots.isEmpty, !availableRecipes.isEmpty else { return nil }
     let slotText = openSlots.map { slot in
       "slotID=\(slot.id.uuidString), date=\(slot.date.formatted(date: .abbreviated, time: .omitted)), meal=\(slot.meal.title), context=\(slot.note.isEmpty ? "open" : slot.note)"
     }.joined(separator: "\n")
     let recipeText = availableRecipes.map { recipe in
-      "recipeID=\(recipe.id.uuidString), name=\(recipe.name), category=\(recipe.category), minutes=\(recipe.prepMinutes + recipe.cookMinutes), caloriesPerServing=\(recipe.caloriesPerServing), rating=\(recipe.rating), goodFor=\(recipe.goodFor.map(\.title).joined(separator: ", ")), ingredients=\(recipe.ingredients.prefix(10).map(\.name).joined(separator: ", "))"
+      let daysSinceCooked = RecipeRotation.daysSinceCooking(recipe, on: referenceDate).map(String.init) ?? "unknown"
+      return "recipeID=\(recipe.id.uuidString), name=\(recipe.name), category=\(recipe.category), minutes=\(recipe.prepMinutes + recipe.cookMinutes), caloriesPerServing=\(recipe.caloriesPerServing), rating=\(recipe.rating), favorite=\(recipe.isFavorite), daysSinceCooked=\(daysSinceCooked), goodFor=\(recipe.goodFor.map(\.title).joined(separator: ", ")), ingredients=\(recipe.ingredients.prefix(10).map(\.name).joined(separator: ", "))"
     }.joined(separator: "\n")
     let prompt = """
-      Choose saved recipes for the open meal slots. Select only recipe IDs from the supplied list, use each recipe at most once, and return no invented recipes. Prioritize the occasion and constraints. For a busy dinner choose a recipe that takes 30 minutes or less when possible. If calories are supplied, prefer a balanced distribution near the daily target, but do not claim precision when a recipe has zero calories. Leave a slot out if no suitable recipe is available.
+      Choose saved recipes for the open meal slots. Select only recipe IDs from the supplied list, use each recipe at most once, and return no invented recipes. Prioritize the occasion and constraints. Among suitable recipes, rotate in favorites and highly rated recipes that have not been cooked recently. Avoid recipes cooked within the past seven days when suitable alternatives exist. Unknown cooking history is eligible. For a busy dinner choose a recipe that takes 30 minutes or less when possible. If calories are supplied, prefer a balanced distribution near the daily target, but do not claim precision when a recipe has zero calories. Leave a slot out if no suitable recipe is available.
 
       Occasion: \(occasion.isEmpty ? "none" : occasion)
       Dietary and other constraints: \(constraints.isEmpty ? "none" : constraints)

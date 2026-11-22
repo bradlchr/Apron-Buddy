@@ -246,7 +246,7 @@ private struct EditableStepFields: View {
       TextField("Step title", text: $step.title)
       TextField("Instructions", text: $step.detail, axis: .vertical)
         .lineLimit(2...5)
-      Stepper("Timer · \(step.timerMinutes) min", value: $step.timerMinutes, in: 0...1440, step: 5)
+      StepTimerDurationPicker(duration: $step.timerMinutes)
       Button("Remove step", systemImage: "trash", role: .destructive, action: onDelete)
         .font(.caption)
         .frame(minHeight: 44, alignment: .leading)

@@ -157,6 +157,7 @@ enum RecipeDeduplicator {
     }
 
     keeper.rating = recipes.map(\.rating).max() ?? keeper.rating
+    keeper.lastCooked = recipes.compactMap(\.lastCooked).max()
     keeper.caloriesPerServing = recipes.map(\.caloriesPerServing).max() ?? keeper.caloriesPerServing
     keeper.isFavorite = recipes.contains(where: \.isFavorite)
     let goodForValues = Set(recipes.flatMap { $0.goodFor.map(\.rawValue) })

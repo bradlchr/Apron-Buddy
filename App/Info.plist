@@ -35,6 +35,12 @@
 			</array>
 		</dict>
 	</array>
+	<key>NSAlarmKitUsageDescription</key>
+	<string>Apron Buddy uses alarms to sound your cooking timers when a recipe step is ready.</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
+	<key>NSSupportsLiveActivitiesFrequentUpdates</key>
+	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>Apron Buddy uses the camera to scan recipe pages and photograph finished dishes.</string>
 	<key>NSContactsUsageDescription</key>

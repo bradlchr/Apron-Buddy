@@ -1,0 +1,4 @@
+• Search opens directly in its own tab, and Shared with Me is now in Recipes.
+• Resume cooking from the tab bar. Follow recipe steps and see named timers in Live Activities, with compact layouts for iPhone Duo.
+• Apron Buddy remembers when you last cooked a recipe and uses that history to rotate favorites into Tonight’s Pick and new meal plans.
+• Enter timer durations in hours and minutes, and read recipe cards more easily over artwork.

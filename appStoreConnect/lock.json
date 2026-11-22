@@ -3,15 +3,19 @@
   "derived": {
     "appAssetLibraryAssets": {
       "31c00019-7836-860a-8032-6f5c2b435bd2": {
+        "renditionChecksum": "4360d802d8e6eb4c061d9d6a9e74c7bf",
         "sourceFileChecksum": "0c126e8df2f23204d9dd43270febd3ff"
       },
       "4d800019-7836-860a-802c-113bb66b4b0a": {
+        "renditionChecksum": "61646042972445469a2944674d581996",
         "sourceFileChecksum": "7bc46be856b8fdcb78c1de217e3f8170"
       },
       "4e400019-7836-860a-8024-18455cea4e8f": {
+        "renditionChecksum": "4abb41799a9858545d76574cded26432",
         "sourceFileChecksum": "a9f1888a893265e9b6d97fdda6baf1ad"
       },
       "4ec00019-7836-860a-8022-cebac50905f3": {
+        "renditionChecksum": "19ba08e09409ba045a062d88bf1c0f50",
         "sourceFileChecksum": "e001dc618ae296ad6c33fa8955e147a1"
       },
       "50800019-7836-860a-801a-bf2e74f93639": {
@@ -19,15 +23,19 @@
         "sourceFileChecksum": "83e04ac6ac41173c71d2010dcf8561d8"
       },
       "57400019-7836-860a-802c-cfe708294527": {
+        "renditionChecksum": "3a2275f25e5d01aaff3b48b738089ac2",
         "sourceFileChecksum": "2b3b76fcc9d8ebd51e51d6fb228bee7e"
       },
       "5f400019-7836-860a-8010-c287187420dd": {
+        "renditionChecksum": "9f5fbdeed8a14e40f4716e2701b87481",
         "sourceFileChecksum": "c44287ce8227d4181b2ed2f2bb8402d4"
       },
       "68c00019-7836-860a-8037-69d227ef746b": {
+        "renditionChecksum": "8ead19e8bdde431cb288cf04a2828d21",
         "sourceFileChecksum": "8308f1c463b3b129e9bcdc5596d0b0ed"
       },
       "74c00019-7836-860a-8002-5f65b2cbd554": {
+        "renditionChecksum": "4beac8f873671414536fc0ad60df9b90",
         "sourceFileChecksum": "d68ad5cdb29a3f7ee5d879fe12ccdb58"
       },
       "7ec00019-7836-860a-8034-7f2c25a2dc48": {
@@ -35,15 +43,19 @@
         "sourceFileChecksum": "b435cc8451717bc8a3388880dce66c7a"
       },
       "87400019-7836-860a-802c-7fdb29457acf": {
+        "renditionChecksum": "f06b98a2c33bd33c2f107a51783d7c3f",
         "sourceFileChecksum": "a7b699948626478bfd42663b6a3de004"
       },
       "8dc00019-7836-860a-8038-cafdeeb29587": {
+        "renditionChecksum": "e3d363e43abb5aa1025de9763d5f3313",
         "sourceFileChecksum": "c83a4a11f22769ce31ceac579c9dfd72"
       },
       "8f400019-7836-860a-8017-f8e4af0c2265": {
+        "renditionChecksum": "276e76cf6059ddeb75d7abb83c0952c9",
         "sourceFileChecksum": "1b444b9bf9b6ebc2955ef37f057bdbc5"
       },
       "a0400019-7836-860a-803c-578812429f22": {
+        "renditionChecksum": "f115afa6ead19e8e5f505c608dda1e3f",
         "sourceFileChecksum": "d28c0c97d8ada4d829b0ff2da5b35c82"
       },
       "b0000019-7836-860a-8007-bb3516005cce": {
@@ -51,12 +63,15 @@
         "sourceFileChecksum": "108ffdc4137af6a448003423813cb1e8"
       },
       "bd800019-7836-860a-8008-586fb5407559": {
+        "renditionChecksum": "c4eba8c8cf55754f9c28053834532933",
         "sourceFileChecksum": "5b12efe1491499b7a40ab830d529cce2"
       },
       "bfc00019-7836-860a-802d-e36f4a05bf82": {
+        "renditionChecksum": "dc9ec0fcbfeab77b019b3db010770d04",
         "sourceFileChecksum": "03b62770ecf303bb87050050bba80a71"
       },
       "c5000019-7836-860a-803d-5671b8c9cc36": {
+        "renditionChecksum": "5b8d1d185896fbe968477c36d92c75e3",
         "sourceFileChecksum": "1688a0d91500a82cbf8323a9d3364cfb"
       },
       "cac00019-7836-860a-801f-9e0f3d75b49b": {
@@ -68,12 +83,15 @@
         "sourceFileChecksum": "bc8c16f6086299ce1580e16a357dca7e"
       },
       "e1800019-7836-860a-8018-d8d6899c2155": {
+        "renditionChecksum": "d6af37d34807fbeae994b967c2b50b23",
         "sourceFileChecksum": "00fcd0a626e0f862811eddf96321421c"
       },
       "e2400019-7836-860a-803d-2304c21dedc4": {
+        "renditionChecksum": "5eacaf32c07d61f88041a84c34166c7b",
         "sourceFileChecksum": "8c6da5cae5ac9c3701e69f8018dedfb6"
       },
       "eb800019-7836-860a-8023-f563c99fda20": {
+        "renditionChecksum": "2adeaa0343989049ee0f59a4ddadc73e",
         "sourceFileChecksum": "c322cf8dd14fbee7e1de9d50fd46a98a"
       }
     },

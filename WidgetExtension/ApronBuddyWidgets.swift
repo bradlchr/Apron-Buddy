@@ -9,6 +9,10 @@ struct ApronBuddyWidgets: WidgetBundle {
     TodayMealWidget()
     MealPlanOverviewWidget()
     GroceryListWidget()
+    #if os(iOS)
+    CookingLiveActivity()
+    CookingTimerLiveActivity()
+    #endif
   }
 }
 

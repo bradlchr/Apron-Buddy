@@ -478,19 +478,18 @@ struct ImportRecipeView: View {
             .font(.caption.weight(.bold))
             .tracking(1)
             .foregroundStyle(.secondary)
-          ForEach(Array(initialDraft.steps.prefix(3).enumerated()), id: \.element.id) { index, step in
-            HStack(alignment: .top, spacing: 10) {
-              Text("\(index + 1)")
-                .font(.caption.weight(.bold))
-                .foregroundStyle(Color.miseOlive)
-              Text(step.title + ": " + step.detail)
+          ForEach(initialDraft.steps) { step in
+            VStack(alignment: .leading, spacing: 6) {
+              Text(step.title)
+                .font(.subheadline.weight(.semibold))
+              Text(step.detail)
                 .font(.subheadline)
+                .foregroundStyle(.secondary)
+              StepTimerDurationPicker(duration: timerBinding(for: step))
             }
-          }
-          if initialDraft.steps.count > 3 {
-            Text("And \(initialDraft.steps.count - 3) more steps")
-              .font(.caption)
-              .foregroundStyle(.secondary)
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.miseSurface, in: RoundedRectangle(cornerRadius: 12))
           }
         }
       }
@@ -563,6 +562,16 @@ struct ImportRecipeView: View {
     Binding(
       get: { importedDraft![keyPath: keyPath] },
       set: { importedDraft![keyPath: keyPath] = $0 }
+    )
+  }
+
+  private func timerBinding(for step: RecipeStep) -> Binding<Int> {
+    Binding(
+      get: { importedDraft?.steps.first(where: { $0.id == step.id })?.timerMinutes ?? step.timerMinutes },
+      set: { value in
+        guard let index = importedDraft?.steps.firstIndex(where: { $0.id == step.id }) else { return }
+        importedDraft?.steps[index].timerMinutes = value
+      }
     )
   }
 

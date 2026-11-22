@@ -17,6 +17,14 @@ private enum AppDestination: String, CaseIterable, Identifiable {
   case sharedWithMe
   case search
 
+  static let sidebarSections = allCases.filter {
+    #if os(iOS)
+    $0 != .search && $0 != .sharedWithMe
+    #else
+    $0 != .search
+    #endif
+  }
+
   var id: String { rawValue }
   var title: String {
     switch self {
@@ -53,12 +61,20 @@ struct ContentView: View {
   @State private var destination: AppDestination = .today
   @State private var sidebarSelection: AppDestination? = .today
   @State private var selectedRecipe: Recipe?
+  @State private var editsFeaturedCookingDate: Recipe?
   @State private var selectedCookbook: Cookbook?
   @State private var isImportPresented = false
   @State private var pendingImport: SharedImportPayload?
   @State private var openPlanID: UUID?
   @State private var shouldOpenGroceries = false
-  @State private var phoneNavigationResetTokens: [AppDestination: UUID] = [:]
+  #if os(iOS)
+  @State private var recipesPath: [AppDestination] = []
+  @State private var cooking = CookingSessionStore.shared
+  @State private var isCookingPresented = false
+  @State private var opensCookingAfterDismissal = false
+  @State private var recipeSearchText = ""
+  @State private var isRecipeSearchPresented = false
+  #endif
   @State private var searchText = ""
   @State private var cloudSyncStatus = "Checking iCloud…"
   @State private var cloudSyncError: String?
@@ -68,13 +84,24 @@ struct ContentView: View {
   @State private var minimumRating = 0
   @State private var favoritesOnly = false
 
-  private func selectDestination(_ value: AppDestination) {
+  private func selectDestination(_ requested: AppDestination) {
+    #if os(iOS)
+    let value: AppDestination = requested == .sharedWithMe ? .recipes : requested
+    if requested == .sharedWithMe {
+      recipesPath = [.sharedWithMe]
+    }
+    #else
+    let value = requested
+    #endif
     if value != .mealPlans || destination == value {
       openPlanID = nil
       shouldOpenGroceries = false
     }
     destination = value
     if value != .search { sidebarSelection = value }
+    #if os(iOS)
+    isRecipeSearchPresented = value == .search && isPhoneLayout
+    #endif
   }
 
   private var visibleRecipes: [Recipe] {
@@ -98,12 +125,16 @@ struct ContentView: View {
         values = values.filter { $0.rating >= minimumRating }
       }
     }
-    guard !searchText.isEmpty else { return values }
-    return values.filter { recipe in
-      recipe.name.localizedCaseInsensitiveContains(searchText)
-        || recipe.category.localizedCaseInsensitiveContains(searchText)
-        || recipe.summary.localizedCaseInsensitiveContains(searchText)
-        || recipe.ingredients.contains { $0.name.localizedCaseInsensitiveContains(searchText) }
+    return isPhoneLayout ? values : matchingRecipes(values, query: searchText)
+  }
+
+  private func matchingRecipes(_ recipes: [Recipe], query: String) -> [Recipe] {
+    guard !query.isEmpty else { return recipes }
+    return recipes.filter { recipe in
+      recipe.name.localizedCaseInsensitiveContains(query)
+        || recipe.category.localizedCaseInsensitiveContains(query)
+        || recipe.summary.localizedCaseInsensitiveContains(query)
+        || recipe.ingredients.contains { $0.name.localizedCaseInsensitiveContains(query) }
     }
   }
 
@@ -115,115 +146,139 @@ struct ContentView: View {
     #endif
   }
 
-  private var destinationContent: some View {
-    Group {
-      switch destination {
-      case .today:
-        todayView
-      case .recipes, .favorites:
-        recipeLibrary
-      case .cookbooks:
-        CookbooksView(recipes: recipes, wrapsNavigationStack: !isPhoneLayout)
-      case .mealPlans:
-        MealPlansView(recipes: recipes, searchText: searchText, openPlanID: openPlanID, openGroceries: shouldOpenGroceries, wrapsNavigationStack: !isPhoneLayout)
-      case .sharedWithMe:
-        SharedWithMeView(recipes: recipes, cookbooks: cookbooks, wrapsNavigationStack: !isPhoneLayout)
-      case .search:
-        recipeSearchContent
-      }
+  #if os(iOS)
+  @ViewBuilder
+  private var phoneNavigation: some View {
+    if #available(iOS 26.1, *) {
+      phoneTabs
+        .tabViewBottomAccessory(isEnabled: cooking.session != nil) { cookingAccessory }
+        .tabBarMinimizeBehavior(.never)
+    } else {
+      phoneTabs
+        .tabViewBottomAccessory { cookingAccessory }
+        .tabBarMinimizeBehavior(.never)
     }
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .background(Color.misePaper)
   }
 
-  private var phoneNavigation: some View {
+  private var phoneTabs: some View {
     TabView(selection: phoneTabSelection) {
       Tab("Today", systemImage: AppDestination.today.symbol, value: .today) {
         NavigationStack {
           todayView
-            .navigationTitle(AppDestination.today.title)
             .toolbar { CloudStatusToolbar(status: cloudSyncStatus, action: checkCloudStatus) }
         }
-        .id(phoneNavigationResetTokens[.today])
       }
 
       Tab("Recipes", systemImage: AppDestination.recipes.symbol, value: .recipes) {
-        NavigationStack {
-          recipeLibrary
-            .navigationTitle(AppDestination.recipes.title)
-            .toolbar { CloudStatusToolbar(status: cloudSyncStatus, action: checkCloudStatus) }
-        }
-        .id(phoneNavigationResetTokens[.recipes])
+        recipesNavigation
       }
 
       Tab("Books", systemImage: AppDestination.cookbooks.symbol, value: .cookbooks) {
-        CookbooksView(
-          recipes: recipes,
-          wrapsNavigationStack: true,
-          cloudSyncStatus: cloudSyncStatus,
-          onCloudSyncAction: checkCloudStatus
-        )
-        .id(phoneNavigationResetTokens[.cookbooks])
+        CookbooksView(recipes: recipes, cloudSyncStatus: cloudSyncStatus, onCloudSyncAction: checkCloudStatus)
       }
 
       Tab("Plans", systemImage: AppDestination.mealPlans.symbol, value: .mealPlans) {
         MealPlansView(
           recipes: recipes,
-          searchText: searchText,
+          searchText: "",
           openPlanID: openPlanID,
           openGroceries: shouldOpenGroceries,
-          wrapsNavigationStack: true,
           cloudSyncStatus: cloudSyncStatus,
           onCloudSyncAction: checkCloudStatus
         )
-        .id(phoneNavigationResetTokens[.mealPlans])
       }
 
-      Tab("Shared", systemImage: AppDestination.sharedWithMe.symbol, value: .sharedWithMe) {
-        SharedWithMeView(
-          recipes: recipes,
-          cookbooks: cookbooks,
-          wrapsNavigationStack: true,
-          cloudSyncStatus: cloudSyncStatus,
-          onCloudSyncAction: checkCloudStatus
-        )
-        .id(phoneNavigationResetTokens[.sharedWithMe])
-      }
-
-      Tab(value: .search, role: .search) {
+      Tab("Search", systemImage: AppDestination.search.symbol, value: .search, role: recipeSearchRole) {
         NavigationStack {
-          recipeSearchContent
+          recipeSearchContent(query: recipeSearchText)
         }
-        .id(phoneNavigationResetTokens[.search])
+        .searchable(
+          text: $recipeSearchText,
+          isPresented: $isRecipeSearchPresented,
+          placement: .navigationBarDrawer(displayMode: .always),
+          prompt: "Recipe name or ingredient"
+        )
       }
     }
-    .searchable(text: $searchText, prompt: "Recipe name or ingredient")
-    .tabViewSearchActivation(.searchTabSelection)
+  }
+
+  @ViewBuilder
+  private var cookingAccessory: some View {
+    if let session = cooking.session {
+      CookingAccessory(session: session, open: cooking.requestPresentation)
+    }
+  }
+
+  private func openCooking() {
+    if selectedRecipe != nil || selectedCookbook != nil {
+      opensCookingAfterDismissal = true
+      selectedRecipe = nil
+      selectedCookbook = nil
+    } else {
+      isCookingPresented = true
+    }
+  }
+  #endif
+
+  private func presentCookingAfterDismissal() {
+    #if os(iOS)
+    if opensCookingAfterDismissal {
+      opensCookingAfterDismissal = false
+      isCookingPresented = cooking.session != nil
+    }
+    #endif
+  }
+
+  #if os(iOS)
+  private var recipeSearchRole: TabRole {
+    if #available(iOS 27.0, *) {
+      return .prominent
+    }
+    return .search
   }
 
   private var phoneTabSelection: Binding<AppDestination> {
     Binding(
       get: { destination == .favorites ? .recipes : destination },
-      set: { value in
-        if destination == value {
-          phoneNavigationResetTokens[value] = UUID()
-        }
-        selectDestination(value)
-      }
+      set: { selectDestination($0) }
     )
   }
 
-  private var recipeSearchContent: some View {
-    Group {
-      if visibleRecipes.isEmpty {
+  private var recipesNavigation: some View {
+    NavigationStack(path: $recipesPath) {
+      recipeLibrary
+        .toolbar {
+          if isPhoneLayout {
+            CloudStatusToolbar(status: cloudSyncStatus, action: checkCloudStatus)
+          }
+        }
+        .navigationDestination(for: AppDestination.self) { item in
+          if item == .sharedWithMe {
+            SharedWithMeView(
+              recipes: recipes,
+              cookbooks: cookbooks,
+              wrapsNavigationStack: false,
+              cloudSyncStatus: isPhoneLayout ? cloudSyncStatus : nil,
+              onCloudSyncAction: checkCloudStatus
+            )
+          }
+        }
+    }
+  }
+  #endif
+
+  private func recipeSearchContent(query: String) -> some View {
+    let results = matchingRecipes(recipes, query: query)
+    return Group {
+      if results.isEmpty {
         ContentUnavailableView(
-          searchText.isEmpty ? "No recipes yet" : "No matching recipes",
+          query.isEmpty ? "No recipes yet" : "No matching recipes",
           systemImage: "magnifyingglass",
-          description: Text(searchText.isEmpty ? "Import a recipe to start searching your kitchen." : "Try a different recipe name or ingredient.")
+          description: Text(query.isEmpty ? "Import a recipe to start searching your kitchen." : "Try a different recipe name or ingredient.")
         )
       } else {
         List {
-          ForEach(visibleRecipes) { recipe in
+          ForEach(results) { recipe in
             Button {
               selectedRecipe = recipe
             } label: {
@@ -320,11 +375,23 @@ struct ContentView: View {
 
   var body: some View {
     Group {
+      #if os(iOS)
       if isPhoneLayout {
         phoneNavigation
       } else {
         splitNavigation
+          .safeAreaInset(edge: .bottom, spacing: 0) {
+            if cooking.session != nil {
+              cookingAccessory
+                .frame(maxWidth: 520)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 8)
+            }
+          }
       }
+      #else
+      splitNavigation
+      #endif
     }
     .sheet(isPresented: $isImportPresented, onDismiss: {
       pendingImport = nil
@@ -334,14 +401,32 @@ struct ContentView: View {
       ImportRecipeView(importItem: pendingImport)
         .frame(minWidth: 360, minHeight: 520)
     }
-    .sheet(item: $selectedRecipe) { recipe in
+    .sheet(item: $selectedRecipe, onDismiss: presentCookingAfterDismissal) { recipe in
       RecipeDetailView(recipe: recipe)
     }
-    .sheet(item: $selectedCookbook) { cookbook in
+    .sheet(item: $editsFeaturedCookingDate) { recipe in
+      RecipeCookingDateEditor(recipe: recipe)
+    }
+    .sheet(item: $selectedCookbook, onDismiss: presentCookingAfterDismissal) { cookbook in
       NavigationStack {
         CookbookDetailView(cookbook: cookbook, recipes: recipes)
       }
     }
+    #if os(iOS)
+    .sheet(isPresented: $isCookingPresented) {
+      CookingSheet(cooking: cooking) { recipeID in
+        let fetch = FetchDescriptor<Recipe>(predicate: #Predicate { $0.id == recipeID })
+        if let recipe = try modelContext.fetch(fetch).first {
+          try recipe.saveLastCooked(.now, in: modelContext)
+        }
+      }
+        .presentationDetents([.large])
+        .presentationSizing(.page)
+        .presentationDragIndicator(.visible)
+    }
+    .onChange(of: cooking.presentationRequest) { openCooking() }
+    .task { await cooking.observeTimers() }
+    #endif
     .sheet(isPresented: $isCloudStatusPresented) {
       CloudSyncStatusView(status: cloudSyncStatus) {
         Task { await refreshCloudSync() }
@@ -411,7 +496,7 @@ struct ContentView: View {
         }
       )) {
         Section("YOUR KITCHEN") {
-          ForEach(AppDestination.allCases.filter { $0 != .search }) { item in
+          ForEach(AppDestination.sidebarSections) { item in
             Label(item.title, systemImage: item.symbol)
               .tag(item)
           }
@@ -434,7 +519,11 @@ struct ContentView: View {
         case .today:
           todayView
         case .recipes:
+          #if os(iOS)
+          recipesNavigation
+          #else
           recipeLibrary
+          #endif
         case .cookbooks:
           CookbooksView(recipes: recipes)
         case .mealPlans:
@@ -444,7 +533,7 @@ struct ContentView: View {
         case .sharedWithMe:
           SharedWithMeView(recipes: recipes, cookbooks: cookbooks)
         case .search:
-          recipeSearchContent
+          recipeSearchContent(query: searchText)
         }
       }
       .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -475,6 +564,12 @@ struct ContentView: View {
     }
     let identifier = url.pathComponents.dropFirst().first
     switch url.host {
+    #if os(iOS)
+    case "cooking":
+      if identifier.flatMap(UUID.init(uuidString:)) == cooking.session?.id, cooking.session != nil {
+        cooking.requestPresentation()
+      }
+    #endif
     case "recipe":
       guard let identifier, let id = UUID(uuidString: identifier),
             let recipe = recipes.first(where: { $0.id == id }) else { return }
@@ -499,7 +594,8 @@ struct ContentView: View {
   }
 
   private var todayView: some View {
-    ScrollView {
+    let featured = RecipeRotation.ranked(recipes, on: .now).first
+    return ScrollView {
       VStack(alignment: .leading, spacing: 30) {
         HStack(alignment: .top) {
           VStack(alignment: .leading, spacing: 5) {
@@ -529,7 +625,7 @@ struct ContentView: View {
           cloudSyncNotice
         }
 
-        if let featured = recipes.first {
+        if let featured {
           Button {
             selectedRecipe = featured
           } label: {
@@ -539,6 +635,9 @@ struct ContentView: View {
           .buttonStyle(.plain)
           .accessibilityLabel("Tonight’s pick, \(featured.name), \(featured.prepMinutes + featured.cookMinutes) minutes, \(featured.category)")
           .accessibilityHint("Opens the recipe details.")
+          .contextMenu {
+            Button("Edit last cooked…", systemImage: "calendar") { editsFeaturedCookingDate = featured }
+          }
         }
 
         VStack(alignment: .leading, spacing: 15) {
@@ -553,7 +652,7 @@ struct ContentView: View {
           }
 
           LazyVGrid(columns: [GridItem(.adaptive(minimum: 210), spacing: 16)], alignment: .leading, spacing: 16) {
-            ForEach(Array(recipes.dropFirst().prefix(4))) { recipe in
+            ForEach(Array(recipes.lazy.filter { $0.id != featured?.id }.prefix(4))) { recipe in
               RecipeTile(recipe: recipe, cookbooks: cookbooks, allRecipes: recipes) {
                 selectedRecipe = recipe
               }
@@ -621,6 +720,24 @@ struct ContentView: View {
         }
 
         if destination == .recipes {
+          #if os(iOS)
+          NavigationLink(value: AppDestination.sharedWithMe) {
+            HStack(spacing: 10) {
+              Label("Shared with me", systemImage: AppDestination.sharedWithMe.symbol)
+                .font(.subheadline.weight(.semibold))
+              Spacer()
+              Image(systemName: "chevron.forward")
+                .font(.caption.weight(.semibold))
+                .accessibilityHidden(true)
+            }
+            .foregroundStyle(Color.miseOlive)
+            .padding(.horizontal, 14)
+            .frame(minHeight: 44)
+            .background(Color.miseSurface, in: RoundedRectangle(cornerRadius: 12))
+          }
+          .buttonStyle(.plain)
+          #endif
+
           HStack {
             Button {
               favoritesOnly.toggle()
@@ -695,37 +812,28 @@ struct ContentView: View {
 }
 
 private struct FeaturedRecipeCard: View {
-  @Environment(\.dynamicTypeSize) private var dynamicTypeSize
   var recipe: Recipe
 
-  private var artworkHeight: CGFloat {
-    dynamicTypeSize.isAccessibilitySize ? 430 : 330
-  }
-
   var body: some View {
-    ZStack(alignment: .bottomLeading) {
-      RecipeArtwork(recipe: recipe, height: artworkHeight)
-      LinearGradient(colors: [.clear, .black.opacity(0.64)], startPoint: .center, endPoint: .bottom)
+    VStack(alignment: .leading, spacing: 0) {
+      RecipeArtwork(recipe: recipe, height: 235)
       VStack(alignment: .leading, spacing: 9) {
         Text("TONIGHT’S PICK")
           .font(.caption.weight(.bold))
           .tracking(1.2)
-          .foregroundStyle(.white.opacity(0.9))
+          .foregroundStyle(Color.miseOlive)
         Text(recipe.name)
           .font(.system(.largeTitle, design: .serif, weight: .semibold))
-          .foregroundStyle(.white)
-          .lineLimit(2)
-        HStack(spacing: 14) {
-          Label("\(recipe.prepMinutes + recipe.cookMinutes) min", systemImage: "clock")
-          Text("·")
-          Text(recipe.category)
-        }
-        .font(.subheadline.weight(.medium))
-        .foregroundStyle(.white.opacity(0.92))
+          .foregroundStyle(Color.miseInk)
+          .fixedSize(horizontal: false, vertical: true)
+        Label("\(recipe.category) · \(recipe.prepMinutes + recipe.cookMinutes) min", systemImage: "clock")
+          .font(.subheadline.weight(.medium))
+          .foregroundStyle(Color.miseInk)
       }
       .padding(24)
+      .frame(maxWidth: .infinity, alignment: .leading)
     }
-    .frame(height: artworkHeight)
+    .background(Color.miseSurface)
     .clipShape(RoundedRectangle(cornerRadius: 24))
     .overlay(alignment: .topTrailing) {
       Image(systemName: "arrow.up.right")
@@ -740,6 +848,7 @@ private struct FeaturedRecipeCard: View {
 
 private struct RecipeTile: View {
   @Environment(\.modelContext) private var modelContext
+  @State private var editsLastCooked = false
   var recipe: Recipe
   var cookbooks: [Cookbook]
   var allRecipes: [Recipe]
@@ -756,23 +865,31 @@ private struct RecipeTile: View {
               .font(.headline.weight(.semibold))
               .foregroundStyle(Color.miseInk)
               .lineLimit(2)
-            HStack(spacing: 8) {
-              Text("\(recipe.category) · \(recipe.prepMinutes + recipe.cookMinutes) min")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-              if recipe.rating > 0 {
-                Label("\(recipe.rating) out of 5 stars", systemImage: "star.fill")
-                  .font(.caption.weight(.semibold))
-                  .foregroundStyle(Color.miseOlive)
-              }
+            Text("\(recipe.category) · \(recipe.prepMinutes + recipe.cookMinutes) min")
+              .font(.subheadline)
+              .foregroundStyle(Color.miseInk)
+            if recipe.rating > 0 {
+              Label("\(recipe.rating) out of 5 stars", systemImage: "star.fill")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Color.miseOlive)
+            }
+            if let lastCooked = recipe.lastCooked {
+              Text("Last cooked \(lastCooked.formatted(date: .abbreviated, time: .omitted))")
+                .font(.caption)
+                .foregroundStyle(Color.miseInk)
             }
           }
+          .padding(.horizontal, 12)
+          .padding(.bottom, 12)
+          .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .background(Color.miseSurface, in: RoundedRectangle(cornerRadius: 16))
         .accessibilityHidden(true)
         .contentShape(Rectangle())
       }
       .buttonStyle(.plain)
       .accessibilityLabel("\(recipe.name), \(recipe.category), \(recipe.prepMinutes + recipe.cookMinutes) minutes\(recipe.isFavorite ? ", favorite" : "")")
+      .accessibilityValue(recipe.lastCooked.map { "Last cooked \($0.formatted(date: .abbreviated, time: .omitted))" } ?? "")
       .accessibilityHint("Opens the recipe ingredients and cooking instructions.")
 
       HStack(spacing: 8) {
@@ -785,6 +902,7 @@ private struct RecipeTile: View {
             .accessibilityHidden(true)
         }
         Menu {
+          Button("Edit last cooked…", systemImage: "calendar") { editsLastCooked = true }
           if cookbooks.isEmpty {
             Button("Create a cookbook first", systemImage: "books.vertical") { }
               .disabled(true)
@@ -810,8 +928,8 @@ private struct RecipeTile: View {
             }
           }
         } label: {
-          Image(systemName: "books.vertical")
-            .font(.caption.weight(.semibold))
+          Image(systemName: "ellipsis")
+            .font(.subheadline.weight(.semibold))
             .foregroundStyle(Color.miseOlive)
             .frame(width: 44, height: 44)
             .background(.regularMaterial, in: Circle())
@@ -821,13 +939,15 @@ private struct RecipeTile: View {
         .menuStyle(.borderlessButton)
         #endif
         .buttonStyle(.plain)
-        .accessibilityLabel("Add or copy \(recipe.name) to a cookbook")
-        .accessibilityHint("Opens cookbook options for this recipe.")
+        .accessibilityLabel("Options for \(recipe.name)")
       }
       .padding(9)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .contentShape(Rectangle())
+    .sheet(isPresented: $editsLastCooked) {
+      RecipeCookingDateEditor(recipe: recipe)
+    }
   }
 
   private func duplicate(_ source: Recipe, into cookbook: Cookbook) {

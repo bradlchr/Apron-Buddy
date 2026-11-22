@@ -12,7 +12,9 @@ struct RecipeDetailView: View {
   @Query private var allRecipes: [Recipe]
   @State private var servings: Int
   @State private var usesMetric = false
+  #if !os(iOS)
   @State private var isCooking = false
+  #endif
   @State private var isEditing = false
   @State private var isConfirmingDelete = false
   @State private var isDeleteErrorPresented = false
@@ -390,7 +392,17 @@ struct RecipeDetailView: View {
 
         Button {
           WatchCookingBridge.send(recipe: recipe, servings: servings)
+          #if os(iOS)
+          CookingSessionStore.shared.start(.init(
+            id: UUID(),
+            recipeID: recipe.id,
+            recipeName: recipe.name,
+            servings: servings,
+            steps: recipe.steps.map { .init(title: $0.title, instructions: $0.detail, timerMinutes: $0.timerMinutes) }
+          ))
+          #else
           isCooking = true
+          #endif
         } label: {
           Label("Start cooking", systemImage: "play.fill")
             .font(.headline.weight(.semibold))
@@ -400,6 +412,7 @@ struct RecipeDetailView: View {
             .foregroundStyle(.white)
         }
         .buttonStyle(.plain)
+        .disabled(recipe.steps.isEmpty)
       }
       .padding(.horizontal, 20)
       .padding(.vertical, 12)
@@ -410,10 +423,14 @@ struct RecipeDetailView: View {
         saveRecipeChanges()
       }
     }
+    #if !os(iOS)
     .sheet(isPresented: $isCooking) {
-      CookingModeView(recipe: recipe, servings: servings)
+      CookingModeView(recipe: recipe, servings: servings) {
+        try recipe.saveLastCooked(.now, in: modelContext)
+      }
         .frame(minWidth: 340, minHeight: 450)
     }
+    #endif
     .sheet(isPresented: $isShareOptionsPresented) {
       NavigationStack {
         VStack(spacing: 16) {
@@ -578,13 +595,16 @@ private enum IngredientFormatter {
   }
 }
 
+#if !os(iOS)
 private struct CookingModeView: View {
   @Environment(\.dismiss) private var dismiss
   @Environment(\.dynamicTypeSize) private var dynamicTypeSize
   @State private var currentStep = 0
   @State private var timerEnd: Date?
+  @State private var showsCompletionError = false
   var recipe: Recipe
   var servings: Int
+  var recordCompletion: () throws -> Void
 
   private var step: RecipeStep? {
     guard recipe.steps.indices.contains(currentStep) else { return nil }
@@ -668,6 +688,9 @@ private struct CookingModeView: View {
     }
     .padding(24)
     .background(Color.misePaper)
+    .alert("Couldn’t save the last cooked date", isPresented: $showsCompletionError) {
+      Button("OK", role: .cancel) { }
+    }
   }
 
   private var timerStatus: some View {
@@ -723,7 +746,12 @@ private struct CookingModeView: View {
         currentStep += 1
         timerEnd = nil
       } else {
-        dismiss()
+        do {
+          try recordCompletion()
+          dismiss()
+        } catch {
+          showsCompletionError = true
+        }
       }
     } label: {
       Label(currentStep + 1 == recipe.steps.count ? "Finish" : "Next step", systemImage: currentStep + 1 == recipe.steps.count ? "checkmark" : "arrow.right")
@@ -742,6 +770,8 @@ private extension Int {
     return "\(minutes):\(String(format: "%02d", seconds)) remaining"
   }
 }
+
+#endif
 
 #if os(iOS)
 enum WatchCookingBridge {

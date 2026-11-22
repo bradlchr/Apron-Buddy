@@ -89,6 +89,7 @@ final class Recipe {
   var sharedRecipeZoneName: String = ""
   var sharedRecipeOwnerName: String = ""
   var createdAt: Date = Date()
+  var lastCooked: Date? = nil
   @Attribute(.externalStorage) var photoData: Data? = nil
 
   init(
@@ -151,6 +152,17 @@ final class Recipe {
   var goodFor: [RecipeGoodFor] {
     get { Self.decode(goodForJSON, as: [RecipeGoodFor].self) ?? [] }
     set { goodForJSON = Self.encode(newValue) }
+  }
+
+  func saveLastCooked(_ date: Date?, in context: ModelContext) throws {
+    let previous = lastCooked
+    lastCooked = date
+    do {
+      try context.save()
+    } catch {
+      lastCooked = previous
+      throw error
+    }
   }
 
   func add(to cookbookID: UUID) {
