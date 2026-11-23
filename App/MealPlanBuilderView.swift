@@ -2,6 +2,7 @@ import SwiftData
 import SwiftUI
 
 struct MealPlanBuilderView: View {
+  @KitchenPalette private var palette
   private enum Stage {
     case preferences
     case review
@@ -50,7 +51,7 @@ struct MealPlanBuilderView: View {
           reviewForm
         }
       }
-      .background(Color.misePaper)
+      .background(palette.paper)
       .navigationTitle(stage == .preferences ? "Plan meals" : "Review your plan")
       .toolbar {
         ToolbarItem(placement: .cancellationAction) {
@@ -163,7 +164,7 @@ struct MealPlanBuilderView: View {
           }
         }
         .buttonStyle(.borderedProminent)
-        .tint(Color.miseOlive)
+        .tint(palette.accent)
         .disabled(isGenerating)
       }
     }
@@ -175,7 +176,7 @@ struct MealPlanBuilderView: View {
       Section {
         Label(usedAppleIntelligence ? "Suggested with Apple Intelligence" : "Suggested from your recipes", systemImage: "sparkles")
           .font(.subheadline.weight(.semibold))
-          .foregroundStyle(Color.miseOlive)
+          .foregroundStyle(palette.accent)
         Text("Review each meal and change any recipe before creating the plan.")
           .font(.caption)
           .foregroundStyle(.secondary)
@@ -195,7 +196,7 @@ struct MealPlanBuilderView: View {
                 if !slot.note.isEmpty {
                   Label(slot.note, systemImage: slot.note == "Dinner invitation found" ? "person.2" : "clock")
                     .font(.caption)
-                    .foregroundStyle(Color.miseOlive)
+                    .foregroundStyle(palette.accent)
                 }
 
                 Toggle("Include this meal", isOn: Binding(

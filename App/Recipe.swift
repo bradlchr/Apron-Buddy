@@ -7,10 +7,29 @@ struct RecipeIngredient: Codable, Identifiable, Hashable, Sendable {
   var unit: String
   var name: String
   var note: String = ""
+  var section: String? = nil
 
   var displayAmount: String {
-    if amount.rounded() == amount { return String(Int(amount)) }
-    return amount.formatted(.number.precision(.fractionLength(0...2)))
+    KitchenQuantity.format(amount)
+  }
+}
+
+struct RecipeIngredientSection: Identifiable {
+  var title: String
+  var ingredients: [RecipeIngredient]
+  var id: String { title }
+
+  static func group(_ ingredients: [RecipeIngredient]) -> [Self] {
+    var groups: [Self] = []
+    for ingredient in ingredients {
+      let title = ingredient.section?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+      if let index = groups.firstIndex(where: { $0.title == title }) {
+        groups[index].ingredients.append(ingredient)
+      } else {
+        groups.append(.init(title: title, ingredients: [ingredient]))
+      }
+    }
+    return groups
   }
 }
 
@@ -40,7 +59,7 @@ enum RecipeGoodFor: String, Codable, CaseIterable, Identifiable, Sendable {
     case .event: "Event"
     case .birthday: "Birthday"
     case .largeGroups: "Large groups"
-    case .kids: "Kids"
+    case .kids: "Kid-friendly"
     case .mealPrep: "Meal prep"
     case .potluck: "Potluck"
     case .holiday: "Holiday"

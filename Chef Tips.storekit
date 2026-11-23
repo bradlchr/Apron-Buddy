@@ -1,0 +1,62 @@
+{
+  "identifier": "1a526b9c-e6c4-4bec-92bf-a8d41c477014",
+  "nonRenewingSubscriptions": [],
+  "products": [
+    {
+      "displayPrice": "1.99",
+      "familyShareable": false,
+      "internalID": "b9d5ad0d-63f1-41ec-b5c1-433853b322f5",
+      "localizations": [
+        {
+          "description": "Support independent Apron Buddy development.",
+          "displayName": "Small Tip",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "apronbuddy.tip.small",
+      "referenceName": "Small Tip",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "4.99",
+      "familyShareable": false,
+      "internalID": "33a5124b-d84a-4331-b11e-65f02e9620af",
+      "localizations": [
+        {
+          "description": "Support independent Apron Buddy development.",
+          "displayName": "Thank You Tip",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "apronbuddy.tip.medium",
+      "referenceName": "Thank You Tip",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "9.99",
+      "familyShareable": false,
+      "internalID": "468241fa-5d66-42d9-be99-520cd5459a3b",
+      "localizations": [
+        {
+          "description": "Support independent Apron Buddy development.",
+          "displayName": "Chef’s Tip",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "apronbuddy.tip.large",
+      "referenceName": "Chef’s Tip",
+      "type": "Consumable"
+    }
+  ],
+  "settings": {
+    "_failTransactionsEnabled": false,
+    "_locale": "en_US",
+    "_storefront": "USA",
+    "_storeKitErrors": []
+  },
+  "subscriptionGroups": [],
+  "version": {
+    "major": 3,
+    "minor": 0
+  }
+}

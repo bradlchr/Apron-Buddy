@@ -2,6 +2,7 @@ import SwiftUI
 import PhotosUI
 
 struct RecipeEditorView: View {
+  @KitchenPalette private var palette
   @Environment(\.dismiss) private var dismiss
   var recipe: Recipe
   var onSave: () -> Void
@@ -17,6 +18,11 @@ struct RecipeEditorView: View {
   @State private var ingredients: [RecipeIngredient]
   @State private var steps: [RecipeStep]
   @State private var userNotes: String
+  @State private var goodFor: Set<RecipeGoodFor>
+  @State private var cleaning = false
+  @State private var cleanupMessage: String?
+  @State private var addsIngredientSection = false
+  @State private var newSectionTitle = ""
   @State private var photoData: Data?
   @State private var selectedPhoto: PhotosPickerItem?
 #if os(iOS)
@@ -38,6 +44,7 @@ struct RecipeEditorView: View {
     _ingredients = State(initialValue: recipe.ingredients)
     _steps = State(initialValue: recipe.steps)
     _userNotes = State(initialValue: recipe.userNotes)
+    _goodFor = State(initialValue: Set(recipe.goodFor))
     _photoData = State(initialValue: recipe.photoData)
   }
 
@@ -50,6 +57,27 @@ struct RecipeEditorView: View {
             .lineLimit(2...5)
           TextField("Category", text: $category)
           TextField("Difficulty", text: $difficulty)
+        }
+
+        Section("Recipe cleanup") {
+          Button("Clean up ingredients and steps", systemImage: "sparkles") {
+            Task { await cleanUpDraft() }
+          }
+          .disabled(cleaning || (ingredients.isEmpty && steps.isEmpty))
+          if cleaning { ProgressView("Cleaning up the recipe…") }
+          if let cleanupMessage {
+            Text(cleanupMessage).font(.footnote).foregroundStyle(.secondary)
+          }
+          Menu(goodFor.isEmpty ? "Occasion tags" : "\(goodFor.count) occasion tags") {
+            ForEach(RecipeGoodFor.allCases) { tag in
+              Toggle(tag.title, isOn: Binding(
+                get: { goodFor.contains(tag) },
+                set: { enabled in
+                  if enabled { goodFor.insert(tag) } else { goodFor.remove(tag) }
+                }
+              ))
+            }
+          }
         }
 
         Section("Servings and timing") {
@@ -112,15 +140,30 @@ struct RecipeEditorView: View {
           }
         }
 
-        Section("Ingredients") {
-          ForEach($ingredients) { ingredient in
-            EditableIngredientFields(ingredient: ingredient) {
-              let id = ingredient.wrappedValue.id
-              ingredients.removeAll { $0.id == id }
+        ForEach(RecipeIngredientSection.group(ingredients)) { section in
+          Section(section.title.isEmpty ? "Ingredients" : section.title) {
+            ForEach(section.ingredients.map(\.id), id: \.self) { id in
+              if let index = ingredients.firstIndex(where: { $0.id == id }) {
+                EditableIngredientFields(ingredient: $ingredients[index]) {
+                  ingredients.removeAll { $0.id == id }
+                }
+              }
+            }
+            Button("Add ingredient", systemImage: "plus") {
+              ingredients.append(RecipeIngredient(amount: 1, unit: "", name: "", section: section.title.isEmpty ? nil : section.title))
             }
           }
-          Button("Add ingredient", systemImage: "plus") {
-            ingredients.append(RecipeIngredient(amount: 1, unit: "", name: ""))
+          .listRowBackground(palette.surface)
+        }
+        Section {
+          if ingredients.isEmpty {
+            Button("Add ingredient", systemImage: "plus") {
+              ingredients.append(RecipeIngredient(amount: 1, unit: "", name: ""))
+            }
+          }
+          Button("Add ingredient section", systemImage: "rectangle.stack.badge.plus") {
+            newSectionTitle = ""
+            addsIngredientSection = true
           }
         }
 
@@ -151,6 +194,9 @@ struct RecipeEditorView: View {
             }
         }
       }
+      .scrollContentBackground(.hidden)
+      .background(palette.paper)
+      .tint(palette.accent)
       .navigationTitle("Edit recipe")
       .toolbar {
         ToolbarItem(placement: .cancellationAction) {
@@ -159,11 +205,21 @@ struct RecipeEditorView: View {
         ToolbarItem(placement: .confirmationAction) {
           Button("Save") { saveChanges() }
             .fontWeight(.semibold)
-            .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            .disabled(cleaning || name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
       }
     }
     .frame(minWidth: 360, minHeight: 520)
+    .alert("Add ingredient section", isPresented: $addsIngredientSection) {
+      TextField("Section name", text: $newSectionTitle)
+      Button("Cancel", role: .cancel) {}
+      Button("Add") {
+        let title = newSectionTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !title.isEmpty {
+          ingredients.append(RecipeIngredient(amount: 1, unit: "", name: "", section: title))
+        }
+      }
+    }
     .onChange(of: selectedPhoto) { _, item in
       guard let item else { return }
       Task {
@@ -191,6 +247,54 @@ struct RecipeEditorView: View {
 #endif
   }
 
+  private func cleanUpDraft() async {
+    guard !cleaning else { return }
+    cleaning = true
+    defer { cleaning = false }
+
+    let sourceIngredients = ingredients
+    let sourceSteps = steps
+    let sourceName = name
+    let sourceCategory = category
+    let source = """
+      \(sourceName)
+      Category: \(sourceCategory)
+      Ingredients
+      \(sourceIngredients.map { "\($0.displayAmount) \($0.unit) \($0.name) \($0.note)" }.joined(separator: "\n"))
+      Instructions
+      \(sourceSteps.enumerated().map { "\($0.offset + 1). \($0.element.title). \($0.element.detail)" }.joined(separator: "\n"))
+      """
+    let draft = try? await OnDeviceRecipeAI.extract(from: String(source.prefix(18_000)))
+    guard !Task.isCancelled, ingredients == sourceIngredients, steps == sourceSteps, name == sourceName, category == sourceCategory else { return }
+
+    ingredients = sourceIngredients.map(IngredientNormalization.clean)
+    if let draft, draft.ingredients.count == sourceIngredients.count {
+      ingredients = zip(sourceIngredients, draft.ingredients).map { original, cleaned in
+        var result = cleaned
+        result.id = original.id
+        result.amount = original.amount
+        result.unit = original.unit
+        result.section = original.section ?? cleaned.section
+        return IngredientNormalization.clean(result)
+      }
+    }
+    let rewroteSteps = draft?.steps.count == sourceSteps.count
+    steps = sourceSteps.enumerated().map { index, original in
+      var step = original
+      if rewroteSteps, let cleaned = draft?.steps[index] {
+        step.title = cleaned.title
+        step.detail = cleaned.detail
+      }
+      if let time = CookingTimeMention.matches(in: step.detail).first {
+        step.timerMinutes = (time.seconds + 59) / 60
+      }
+      return step
+    }
+    category = draft?.category ?? DishCategory.infer(name: name, category: category, ingredients: ingredients).rawValue
+    goodFor.formUnion(draft?.goodFor ?? [])
+    cleanupMessage = "Review the updated ingredients, steps, and tags before saving."
+  }
+
   private func saveChanges() {
     recipe.name = name.trimmingCharacters(in: .whitespacesAndNewlines)
     recipe.summary = summary.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -206,6 +310,7 @@ struct RecipeEditorView: View {
         || !$0.detail.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
     recipe.userNotes = userNotes.trimmingCharacters(in: .whitespacesAndNewlines)
+    recipe.goodFor = RecipeGoodFor.allCases.filter { goodFor.contains($0) }
     recipe.photoData = photoData
     onSave()
     dismiss()
@@ -219,9 +324,9 @@ private struct EditableIngredientFields: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
       HStack(spacing: 10) {
-        TextField("Amount", value: $ingredient.amount, format: .number)
+        TextField("Amount", value: $ingredient.amount, format: KitchenQuantity.Style())
 #if os(iOS)
-          .keyboardType(.decimalPad)
+          .keyboardType(.numbersAndPunctuation)
 #endif
           .frame(maxWidth: 110)
         TextField("Unit", text: $ingredient.unit)

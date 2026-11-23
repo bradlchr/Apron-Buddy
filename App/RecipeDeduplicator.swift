@@ -8,6 +8,7 @@ enum RecipeDeduplicator {
     var unit: String
     var name: String
     var note: String
+    var section: String
   }
 
   private struct StepIdentity: Hashable {
@@ -38,7 +39,7 @@ enum RecipeDeduplicator {
         String(identity.prepMinutes),
         String(identity.cookMinutes),
         identity.sourceURL,
-        identity.ingredients.map { "\($0.amount)|\($0.unit)|\($0.name)|\($0.note)" }.joined(separator: ";"),
+        identity.ingredients.map { "\($0.amount)|\($0.unit)|\($0.name)|\($0.note)|\($0.section)" }.joined(separator: ";"),
         identity.steps.map { "\($0.title)|\($0.detail)|\($0.timerMinutes)" }.joined(separator: ";"),
         recipe.userNotes,
         recipe.summary,
@@ -119,7 +120,8 @@ enum RecipeDeduplicator {
           amount: $0.amount,
           unit: normalized($0.unit),
           name: normalized($0.name),
-          note: normalized($0.note)
+          note: normalized($0.note),
+          section: normalized($0.section ?? "")
         )
       },
       steps: recipe.steps.map {

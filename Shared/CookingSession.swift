@@ -6,6 +6,11 @@ struct CookingSession: Codable, Identifiable {
     var title: String
     var instructions: String
     var timerMinutes: Int
+    var measuredInstructions: String? = nil
+
+    var defaultTimerSeconds: Double {
+      CookingTimeMention.matches(in: instructions).first.map { Double($0.seconds) } ?? Double(timerMinutes) * 60
+    }
   }
 
   struct StepTimer: Codable {
@@ -16,9 +21,13 @@ struct CookingSession: Codable, Identifiable {
 
   let id: UUID
   var recipeID: UUID
+  var libraryID: String? = nil
   var recipeName: String
   var servings: Int
   var steps: [Step]
+  var ingredientMeasurements: [String]? = nil
+  var usesMetricMeasurements: Bool? = nil
+  var resolvedStepMeasurements: Bool? = nil
   var stepIndex = 0
   var timers: [Int: StepTimer] = [:]
 

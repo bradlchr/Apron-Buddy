@@ -178,23 +178,28 @@ enum OnDeviceRecipeAI {
         throw RecipeImportError.modelUnavailable
       }
       let session = LanguageModelSession(instructions: """
-        You are a careful recipe editor. Extract only details supported by the source. Keep ingredient quantities, units, and steps faithful to the source. Capture calories per serving only when the source explicitly lists them; use zero when they are missing, and never estimate nutrition. If another detail is missing, use a sensible short value and never invent safety guidance. Return a concise recipe.
+        You are a careful recipe editor. Extract only details supported by the source. Keep ingredient quantities, units, and steps faithful to the source. Remove repeated ingredient words such as egg egg and keep units separate. Preserve any named ingredient groups, such as Cake and Frosting. Keep instructions such as divided, melted, and as needed in notes. Clean up instruction formatting, preserving cooking temperatures and time ranges. Choose a familiar category (Poultry, Seafood, Appetizer, Dessert, Baking, Pasta, Breakfast, Vegetarian, Soup, or Dinner), and add supported occasion tags. Capture calories per serving only when the source explicitly lists them; use zero when they are missing, and never estimate nutrition. If another detail is missing, use a sensible short value and never invent safety guidance. Return a concise recipe.
         """)
       let response = try await session.respond(to: source, generating: GeneratedRecipe.self)
       let value = response.content
+      let ingredients = value.ingredients.map {
+        IngredientNormalization.clean(RecipeIngredient(amount: max(0, $0.amount), unit: $0.unit, name: $0.name, note: $0.note, section: $0.section))
+      }
       return ImportedRecipeDraft(
         name: value.name,
         summary: value.summary,
-        category: value.category,
+        category: DishCategory.infer(name: value.name, category: value.category, ingredients: ingredients).rawValue,
         servings: max(1, value.servings),
         caloriesPerServing: max(0, value.caloriesPerServing),
         prepMinutes: max(0, value.prepMinutes),
         cookMinutes: max(0, value.cookMinutes),
-        ingredients: value.ingredients.map {
-          RecipeIngredient(amount: max(0, $0.amount), unit: $0.unit, name: $0.name, note: $0.note)
-        },
+        ingredients: ingredients,
         steps: value.steps.map {
-          RecipeStep(title: $0.title, detail: $0.detail, timerMinutes: max(0, $0.timerMinutes))
+          let timer = CookingTimeMention.matches(in: $0.detail).first.map { ($0.seconds + 59) / 60 }
+          return RecipeStep(title: $0.title, detail: $0.detail, timerMinutes: timer ?? max(0, $0.timerMinutes))
+        },
+        goodFor: RecipeGoodFor.allCases.filter { tag in
+          value.tags.contains { $0.caseInsensitiveCompare(tag.title) == .orderedSame }
         },
         aiExtracted: true
       )
@@ -223,33 +228,43 @@ enum SimpleRecipeParser {
     let titleLine = lines.first(where: { !isHeading($0) }) ?? "Imported recipe"
     let name = titleLine.count < 100 ? titleLine : (fallbackTitle.isEmpty ? "Imported recipe" : fallbackTitle)
     var section = Section.details
-    var ingredientLines: [String] = []
+    var ingredientLines: [(line: String, section: String?)] = []
+    var ingredientSection: String?
     var stepLines: [String] = []
     var details: [String] = []
 
     for (index, line) in lines.enumerated() {
-      if isIngredientHeading(line) { section = .ingredients; continue }
+      if isIngredientHeading(line) { section = .ingredients; ingredientSection = nil; continue }
       if isMethodHeading(line) { section = .method; continue }
       if isHeading(line) { continue }
       if index == lines.firstIndex(of: titleLine) { continue }
 
       switch section {
       case .ingredients:
-        ingredientLines.append(line)
+        if !looksLikeIngredient(line), line.count < 60,
+           line.hasSuffix(":") || line.localizedCaseInsensitiveContains("for the ") {
+          ingredientSection = line.trimmingCharacters(in: CharacterSet(charactersIn: ": "))
+        } else {
+          ingredientLines.append((line, ingredientSection))
+        }
       case .method:
         stepLines.append(line)
       case .details:
         if looksLikeNumberedStep(line) {
           stepLines.append(line)
         } else if looksLikeIngredient(line) {
-          ingredientLines.append(line)
+          ingredientLines.append((line, nil))
         } else {
           details.append(line)
         }
       }
     }
 
-    let ingredients = ingredientLines.compactMap(parseIngredient)
+    let ingredients = ingredientLines.compactMap { source -> RecipeIngredient? in
+      guard var item = parseIngredient(source.line) else { return nil }
+      item.section = source.section
+      return IngredientNormalization.clean(item)
+    }
     var steps = stepLines.map(parseStep)
     if steps.isEmpty {
       let body = lines.count > 1 ? lines.dropFirst().joined(separator: "\n") : source
@@ -261,12 +276,7 @@ enum SimpleRecipeParser {
 
     let summary = details.first(where: { $0.count > 12 && $0.count < 180 })
       ?? "Imported from \(fallbackTitle.isEmpty ? "a shared source" : fallbackTitle)."
-    let lower = source.lowercased()
-    let category = lower.contains("breakfast") || lower.contains("pancake") ? "Breakfast"
-      : lower.contains("dessert") || lower.contains("cake") || lower.contains("cookie") ? "Dessert"
-      : lower.contains("pasta") || lower.contains("rigatoni") || lower.contains("spaghetti") ? "Pasta"
-      : lower.contains("vegetarian") || lower.contains("mushroom") ? "Vegetarian"
-      : "Dinner"
+    let category = DishCategory.infer(name: name, category: "", ingredients: ingredients).rawValue
     let servings = firstInteger(matching: #"(?i)(?:serves|servings|yield)\s*(?:about\s*)?(\d+)"#, in: source) ?? 4
     return ImportedRecipeDraft(
       name: name,
@@ -322,7 +332,7 @@ enum SimpleRecipeParser {
     let remainder = String(line[remainderRange]).trimmingCharacters(in: .whitespaces)
     let words = remainder.split(separator: " ", maxSplits: 2, omittingEmptySubsequences: true).map(String.init)
     guard !words.isEmpty else { return nil }
-    let knownUnits: Set<String> = ["tsp", "teaspoon", "teaspoons", "tbsp", "tablespoon", "tablespoons", "cup", "cups", "oz", "ounce", "ounces", "lb", "lbs", "pound", "pounds", "g", "kg", "ml", "l", "clove", "cloves", "bunch", "pinch", "can", "cans"]
+    let knownUnits: Set<String> = ["tsp", "teaspoon", "teaspoons", "tbsp", "tablespoon", "tablespoons", "cup", "cups", "oz", "ounce", "ounces", "lb", "lbs", "pound", "pounds", "g", "kg", "ml", "l", "clove", "cloves", "bunch", "pinch", "can", "cans", "stick", "sticks"]
     let unit = knownUnits.contains(words[0].lowercased()) ? words[0] : ""
     let name = unit.isEmpty ? remainder : words.dropFirst().joined(separator: " ")
     return RecipeIngredient(amount: amount, unit: unit, name: name.isEmpty ? remainder : name)
@@ -330,7 +340,7 @@ enum SimpleRecipeParser {
 
   private static func parseStep(_ sourceLine: String) -> RecipeStep {
     let cleaned = sourceLine.replacingOccurrences(of: #"^\s*(?:[-•*]\s*)?\d+[.)]?\s*"#, with: "", options: .regularExpression)
-    let timer = firstInteger(matching: #"(?i)(\d+)\s*(?:minutes?|mins?)"#, in: cleaned) ?? 0
+    let timer = CookingTimeMention.matches(in: cleaned).first.map { ($0.seconds + 59) / 60 } ?? 0
     let title = String(cleaned.prefix(65)).split(separator: ".").first.map(String.init) ?? "Continue"
     return RecipeStep(title: title.isEmpty ? "Continue" : title, detail: cleaned, timerMinutes: timer)
   }
@@ -365,6 +375,8 @@ private struct GeneratedRecipe {
   var name: String
   var summary: String
   var category: String
+  @Guide(description: "Supported tags when appropriate: Quick weeknight, Event, Birthday, Large groups, Kid-friendly, Meal prep, Potluck, Holiday, Date night")
+  var tags: [String]
   @Guide(description: "Number of servings", .range(1...24))
   var servings: Int
   @Guide(description: "Calories per serving when explicitly stated in the source, otherwise zero", .range(0...5000))
@@ -383,6 +395,8 @@ private struct GeneratedIngredient {
   var unit: String
   var name: String
   var note: String
+  @Guide(description: "Exact name of the ingredient group when stated in the recipe, for example Frosting; otherwise nil")
+  var section: String?
 }
 
 @Generable(description: "One instruction in a recipe")

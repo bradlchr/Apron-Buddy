@@ -51,8 +51,10 @@ private enum AppDestination: String, CaseIterable, Identifiable {
 }
 
 struct ContentView: View {
+  @KitchenPalette private var palette
   @Environment(\.modelContext) private var modelContext
   @Environment(\.scenePhase) private var scenePhase
+  @Environment(\.householdLibrary) private var householdLibrary
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
   @Query(sort: \Recipe.createdAt, order: .reverse) private var recipes: [Recipe]
   @Query(sort: \Cookbook.createdAt, order: .forward) private var cookbooks: [Cookbook]
@@ -68,9 +70,12 @@ struct ContentView: View {
   @State private var openPlanID: UUID?
   @State private var shouldOpenGroceries = false
   #if os(iOS)
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
+  @Namespace private var cookingTransition
   @State private var recipesPath: [AppDestination] = []
   @State private var cooking = CookingSessionStore.shared
   @State private var isCookingPresented = false
+  @State private var cookingTransitionSource: UUID?
   @State private var opensCookingAfterDismissal = false
   @State private var recipeSearchText = ""
   @State private var isRecipeSearchPresented = false
@@ -83,6 +88,8 @@ struct ContentView: View {
   @State private var selectedGoodFor: RecipeGoodFor?
   @State private var minimumRating = 0
   @State private var favoritesOnly = false
+  @State private var pantryIngredients: Set<String> = []
+  @State private var showsPantry = false
 
   private func selectDestination(_ requested: AppDestination) {
     #if os(iOS)
@@ -115,6 +122,12 @@ struct ContentView: View {
     }
     if destination == .recipes {
       if favoritesOnly { values = values.filter(\.isFavorite) }
+      if !pantryIngredients.isEmpty {
+        values = values.filter { recipe in
+          let available = Set(recipe.ingredients.map { IngredientNormalization.key(IngredientNormalization.groceryName(for: $0)) })
+          return pantryIngredients.isSubset(of: available)
+        }
+      }
       if selectedCategory != "All" {
         values = values.filter { $0.category == selectedCategory }
       }
@@ -147,16 +160,22 @@ struct ContentView: View {
   }
 
   #if os(iOS)
+  private var hasCookingAccessory: Bool {
+    guard let session = cooking.session else { return false }
+    return session.libraryID == householdLibrary?.activeID
+  }
+
   @ViewBuilder
   private var phoneNavigation: some View {
+    let minimizeBehavior: TabBarMinimizeBehavior = hasCookingAccessory ? .onScrollDown : .never
     if #available(iOS 26.1, *) {
       phoneTabs
-        .tabViewBottomAccessory(isEnabled: cooking.session != nil) { cookingAccessory }
-        .tabBarMinimizeBehavior(.never)
+        .tabViewBottomAccessory(isEnabled: hasCookingAccessory) { cookingAccessory }
+        .tabBarMinimizeBehavior(minimizeBehavior)
     } else {
       phoneTabs
         .tabViewBottomAccessory { cookingAccessory }
-        .tabBarMinimizeBehavior(.never)
+        .tabBarMinimizeBehavior(minimizeBehavior)
     }
   }
 
@@ -202,14 +221,59 @@ struct ContentView: View {
     }
   }
 
+  private var activeCookingIngredients: [String] {
+    guard let session = cooking.session, session.ingredientMeasurements == nil,
+          let recipe = recipes.first(where: { $0.id == session.recipeID }) else { return [] }
+    return IngredientFormatter.measurementLines(for: recipe, servings: session.servings, metric: session.usesMetricMeasurements ?? false)
+  }
+
+  private func prepareCookingMeasurements() async {
+    guard let session = cooking.session, session.resolvedStepMeasurements != true,
+          let recipe = recipes.first(where: { $0.id == session.recipeID }) else { return }
+    let ingredients = recipe.ingredients
+    let instructions = session.steps.map(\.instructions)
+    let originalServings = recipe.servings
+    let metric = session.usesMetricMeasurements ?? false
+    let baseline = CookingStepMeasurements.baseline(ingredients: ingredients, steps: instructions,
+                                                    originalServings: originalServings, servings: session.servings, metric: metric)
+    cooking.setStepMeasurements(baseline, for: session.id, resolved: false)
+    let enhanced = await CookingStepMeasurements.enhanced(ingredients: ingredients, steps: instructions,
+                                                        originalServings: originalServings, servings: session.servings, metric: metric)
+    if !Task.isCancelled {
+      cooking.setStepMeasurements(enhanced ?? baseline, for: session.id, resolved: true)
+    }
+  }
+
   @ViewBuilder
   private var cookingAccessory: some View {
-    if let session = cooking.session {
-      CookingAccessory(session: session, open: cooking.requestPresentation)
+    if let session = cooking.session, session.libraryID == householdLibrary?.activeID {
+      CookingAccessory(session: session) {
+        cookingTransitionSource = session.id
+        cooking.requestPresentation()
+      }
+      .matchedTransitionSource(id: session.id, in: cookingTransition) { source in
+        source.clipShape(RoundedRectangle(cornerRadius: 26))
+      }
+    }
+  }
+
+  @ViewBuilder
+  private var cookingSheet: some View {
+    let sheet = CookingSheet(cooking: cooking, fallbackIngredients: activeCookingIngredients) { recipeID in
+      let fetch = FetchDescriptor<Recipe>(predicate: #Predicate { $0.id == recipeID })
+      if let recipe = try modelContext.fetch(fetch).first {
+        try recipe.saveLastCooked(.now, in: modelContext)
+      }
+    }
+    if let source = cookingTransitionSource, !reduceMotion {
+      sheet.navigationTransition(.zoom(sourceID: source, in: cookingTransition))
+    } else {
+      sheet
     }
   }
 
   private func openCooking() {
+    guard cooking.session?.libraryID == householdLibrary?.activeID else { return }
     if selectedRecipe != nil || selectedCookbook != nil {
       opensCookingAfterDismissal = true
       selectedRecipe = nil
@@ -284,14 +348,14 @@ struct ContentView: View {
             } label: {
               HStack(spacing: 12) {
                 Image(systemName: "fork.knife")
-                  .foregroundStyle(Color.miseOlive)
+                  .foregroundStyle(palette.accent)
                   .frame(width: 38, height: 38)
-                  .background(Color.miseSage, in: RoundedRectangle(cornerRadius: 11))
+                  .background(palette.softAccent, in: RoundedRectangle(cornerRadius: 11))
                   .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 3) {
                   Text(recipe.name)
                     .font(.headline)
-                    .foregroundStyle(Color.miseInk)
+                    .foregroundStyle(palette.ink)
                   Text(recipe.category)
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -308,11 +372,11 @@ struct ContentView: View {
               .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .listRowBackground(Color.miseSurface)
+            .listRowBackground(palette.surface)
           }
         }
         .scrollContentBackground(.hidden)
-        .background(Color.misePaper)
+        .background(palette.paper)
       }
     }
     .navigationTitle("Search")
@@ -328,51 +392,6 @@ struct ContentView: View {
     Array(Set(recipes.map(\.category))).sorted()
   }
 
-  private var cloudSyncMessage: String {
-    if cloudSyncStatus == "Sign in to iCloud to sync" {
-      return "Your recipes stay here until this device is signed in to iCloud."
-    }
-    if cloudSyncStatus == "iCloud sync is on" {
-      return "Recipes and cookbooks sync with your iCloud account."
-    }
-    return "Open Settings to check your iCloud connection and Siri options."
-  }
-
-  private var cloudSyncNotice: some View {
-    Button {
-      isCloudStatusPresented = true
-      Task { await refreshCloudSync() }
-    } label: {
-      HStack(spacing: 12) {
-        Image(systemName: cloudSyncStatus == "iCloud sync is on" ? "checkmark.icloud" : "icloud.slash")
-          .font(.title3)
-          .foregroundStyle(Color.miseOlive)
-          .frame(width: 42, height: 42)
-          .background(Color.miseSage, in: Circle())
-          .accessibilityHidden(true)
-        VStack(alignment: .leading, spacing: 3) {
-          Text(cloudSyncStatus)
-            .font(.subheadline.weight(.semibold))
-            .foregroundStyle(Color.miseInk)
-          Text(cloudSyncMessage)
-            .font(.caption)
-            .foregroundStyle(.secondary)
-        }
-        Spacer(minLength: 0)
-        Image(systemName: "chevron.right")
-          .font(.caption.weight(.semibold))
-          .foregroundStyle(.tertiary)
-          .accessibilityHidden(true)
-      }
-      .padding(13)
-      .background(Color.miseSurface, in: RoundedRectangle(cornerRadius: 16))
-      .contentShape(RoundedRectangle(cornerRadius: 16))
-    }
-    .buttonStyle(.plain)
-    .accessibilityLabel("Settings and iCloud sync status. \(cloudSyncStatus). \(cloudSyncMessage)")
-    .accessibilityHint("Opens Settings with Siri controls and iCloud sync details.")
-  }
-
   var body: some View {
     Group {
       #if os(iOS)
@@ -381,7 +400,7 @@ struct ContentView: View {
       } else {
         splitNavigation
           .safeAreaInset(edge: .bottom, spacing: 0) {
-            if cooking.session != nil {
+            if hasCookingAccessory {
               cookingAccessory
                 .frame(maxWidth: 520)
                 .padding(.horizontal, 16)
@@ -393,6 +412,7 @@ struct ContentView: View {
       splitNavigation
       #endif
     }
+    .tint(palette.accent)
     .sheet(isPresented: $isImportPresented, onDismiss: {
       pendingImport = nil
       DispatchQueue.main.async { receiveSharedImports() }
@@ -400,6 +420,9 @@ struct ContentView: View {
     }) {
       ImportRecipeView(importItem: pendingImport)
         .frame(minWidth: 360, minHeight: 520)
+    }
+    .sheet(isPresented: $showsPantry) {
+      PantryFilterView(options: pantryOptions, selected: $pantryIngredients)
     }
     .sheet(item: $selectedRecipe, onDismiss: presentCookingAfterDismissal) { recipe in
       RecipeDetailView(recipe: recipe)
@@ -413,16 +436,13 @@ struct ContentView: View {
       }
     }
     #if os(iOS)
-    .sheet(isPresented: $isCookingPresented) {
-      CookingSheet(cooking: cooking) { recipeID in
-        let fetch = FetchDescriptor<Recipe>(predicate: #Predicate { $0.id == recipeID })
-        if let recipe = try modelContext.fetch(fetch).first {
-          try recipe.saveLastCooked(.now, in: modelContext)
-        }
-      }
+    .sheet(isPresented: $isCookingPresented, onDismiss: { cookingTransitionSource = nil }) {
+      cookingSheet
+        .task(id: cooking.session?.id) { await prepareCookingMeasurements() }
         .presentationDetents([.large])
         .presentationSizing(.page)
         .presentationDragIndicator(.visible)
+        .presentationBackground(palette.paper)
     }
     .onChange(of: cooking.presentationRequest) { openCooking() }
     .task { await cooking.observeTimers() }
@@ -433,7 +453,7 @@ struct ContentView: View {
       }
     }
     .task {
-      if !hasSeededSampleRecipes {
+      if householdLibrary?.isActive != true && !hasSeededSampleRecipes {
         RecipeSamples.insertIfNeeded(into: modelContext, existing: recipes)
         hasSeededSampleRecipes = true
       }
@@ -446,7 +466,7 @@ struct ContentView: View {
       WidgetSnapshotPublisher.publish(recipes: recipes, cookbooks: cookbooks, plans: mealPlans)
     }
     .task(id: RecipeDeduplicator.changeKey(for: recipes)) {
-      guard !recipes.isEmpty else { return }
+      guard householdLibrary?.isActive != true, !recipes.isEmpty else { return }
       try? await Task.sleep(for: .seconds(2))
       guard !Task.isCancelled else { return }
       RecipeDeduplicator.removeExactDuplicates(in: modelContext)
@@ -458,7 +478,8 @@ struct ContentView: View {
       }
     }
     .onReceive(NotificationCenter.default.publisher(for: .miseCloudKitShareAccepted)) { notification in
-      guard let metadata = notification.object as? CKShare.Metadata else { return }
+      guard let metadata = notification.object as? CKShare.Metadata,
+            !HouseholdMembership.matches(metadata), householdLibrary?.isActive != true else { return }
       Task {
         do {
           if metadata.hierarchicalRootRecordID?.recordName == CloudKitCookbookStore.recipeRootRecordName {
@@ -537,7 +558,7 @@ struct ContentView: View {
         }
       }
       .frame(maxWidth: .infinity, maxHeight: .infinity)
-      .background(Color.misePaper)
+      .background(palette.paper)
       .searchable(text: $searchText, prompt: destination == .mealPlans ? "Find a meal plan" : "Find a recipe")
     }
     .navigationSplitViewStyle(.balanced)
@@ -547,11 +568,11 @@ struct ContentView: View {
           isCloudStatusPresented = true
           Task { await refreshCloudSync() }
         } label: {
-          Image(systemName: cloudSyncStatus == "iCloud sync is on" ? "checkmark.icloud" : "icloud")
-            .foregroundStyle(cloudSyncStatus == "iCloud sync is on" ? Color.miseOlive : Color.secondary)
+          Label("Settings", systemImage: "gearshape")
+            .labelStyle(.iconOnly)
         }
-        .help("Open Settings and view iCloud sync status")
-        .accessibilityLabel("Settings and iCloud sync status: \(cloudSyncStatus)")
+        .help("Open Apron Buddy settings")
+        .accessibilityValue(cloudSyncStatus)
       }
     }
   }
@@ -602,10 +623,10 @@ struct ContentView: View {
             Text(Date.now.formatted(.dateTime.weekday(.wide).month(.wide).day()).uppercased())
               .font(.caption.weight(.semibold))
               .tracking(1.3)
-              .foregroundStyle(Color.miseOlive)
+              .foregroundStyle(palette.accent)
             Text("A little inspiration")
               .font(.largeTitle.weight(.semibold))
-              .foregroundStyle(Color.miseInk)
+              .foregroundStyle(palette.ink)
           }
           Spacer(minLength: 8)
           Button {
@@ -615,14 +636,10 @@ struct ContentView: View {
               .font(.subheadline.weight(.semibold))
               .padding(.horizontal, 16)
               .padding(.vertical, 11)
-              .background(Color.miseOlive, in: Capsule())
+              .background(palette.strongAccent, in: Capsule())
               .foregroundStyle(.white)
           }
           .buttonStyle(.plain)
-        }
-
-        if cloudSyncStatus != "iCloud sync is on" {
-          cloudSyncNotice
         }
 
         if let featured {
@@ -644,11 +661,11 @@ struct ContentView: View {
           HStack(alignment: .firstTextBaseline) {
             Text("Made for your table")
               .font(.title2.weight(.semibold))
-              .foregroundStyle(Color.miseInk)
+              .foregroundStyle(palette.ink)
             Spacer()
             Button("See all") { selectDestination(.recipes) }
               .font(.subheadline.weight(.medium))
-              .foregroundStyle(Color.miseOlive)
+              .foregroundStyle(palette.accent)
           }
 
           LazyVGrid(columns: [GridItem(.adaptive(minimum: 210), spacing: 16)], alignment: .leading, spacing: 16) {
@@ -663,9 +680,9 @@ struct ContentView: View {
         HStack(spacing: 14) {
           Image(systemName: "sparkles")
             .font(.title3)
-            .foregroundStyle(Color.miseOlive)
+            .foregroundStyle(palette.accent)
             .frame(width: 44, height: 44)
-            .background(Color.miseSage, in: Circle())
+            .background(palette.softAccent, in: Circle())
           VStack(alignment: .leading, spacing: 3) {
             Text("Found a recipe you love?")
               .font(.subheadline.weight(.semibold))
@@ -677,12 +694,12 @@ struct ContentView: View {
           Button { isImportPresented = true } label: {
             Image(systemName: "arrow.right")
               .font(.subheadline.weight(.semibold))
-              .foregroundStyle(Color.miseOlive)
+              .foregroundStyle(palette.accent)
           }
           .accessibilityLabel("Import a recipe")
         }
         .padding(16)
-        .background(Color.miseSurface, in: RoundedRectangle(cornerRadius: 18))
+        .background(palette.surface, in: RoundedRectangle(cornerRadius: 18))
       }
       .padding(.horizontal, 26)
       .padding(.top, 26)
@@ -690,8 +707,18 @@ struct ContentView: View {
       .frame(maxWidth: 1040, alignment: .leading)
       .frame(maxWidth: .infinity, alignment: .topLeading)
     }
-    .background(Color.misePaper)
+    .background(palette.paper)
     .navigationTitle("Today")
+  }
+
+  private var pantryOptions: [String] {
+    let names = recipes.lazy.flatMap(\.ingredients).map(IngredientNormalization.groceryName)
+    var byKey: [String: String] = [:]
+    for name in names where !name.isEmpty {
+      let key = IngredientNormalization.key(name)
+      if byKey[key] == nil { byKey[key] = name }
+    }
+    return byKey.values.sorted { $0.localizedStandardCompare($1) == .orderedAscending }
   }
 
   private var recipeLibrary: some View {
@@ -701,7 +728,7 @@ struct ContentView: View {
           VStack(alignment: .leading, spacing: 5) {
             Text(destination == .favorites ? "Saved for later" : "Your collection")
               .font(.largeTitle.weight(.semibold))
-              .foregroundStyle(Color.miseInk)
+              .foregroundStyle(palette.ink)
             Text("\(visibleRecipes.count) recipes, ready when you are")
               .font(.subheadline)
               .foregroundStyle(.secondary)
@@ -712,14 +739,17 @@ struct ContentView: View {
               .font(.subheadline.weight(.semibold))
           }
           .buttonStyle(.borderedProminent)
-          .tint(Color.miseOlive)
-        }
-
-        if cloudSyncStatus != "iCloud sync is on" {
-          cloudSyncNotice
+          .tint(palette.strongAccent)
         }
 
         if destination == .recipes {
+          Button(pantryIngredients.isEmpty ? "Cook with what I have" : "Pantry filter · \(pantryIngredients.count) selected", systemImage: "basket") {
+            showsPantry = true
+          }
+          .buttonStyle(.bordered)
+          .tint(palette.accent)
+          .disabled(pantryOptions.isEmpty)
+
           #if os(iOS)
           NavigationLink(value: AppDestination.sharedWithMe) {
             HStack(spacing: 10) {
@@ -730,10 +760,10 @@ struct ContentView: View {
                 .font(.caption.weight(.semibold))
                 .accessibilityHidden(true)
             }
-            .foregroundStyle(Color.miseOlive)
+            .foregroundStyle(palette.accent)
             .padding(.horizontal, 14)
             .frame(minHeight: 44)
-            .background(Color.miseSurface, in: RoundedRectangle(cornerRadius: 12))
+            .background(palette.surface, in: RoundedRectangle(cornerRadius: 12))
           }
           .buttonStyle(.plain)
           #endif
@@ -744,10 +774,10 @@ struct ContentView: View {
             } label: {
               Label(favoritesOnly ? "Favorites" : "All recipes", systemImage: favoritesOnly ? "heart.fill" : "heart")
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(favoritesOnly ? Color.white : Color.miseOlive)
+                .foregroundStyle(favoritesOnly ? Color.white : palette.accent)
                 .padding(.horizontal, 11)
                 .padding(.vertical, 8)
-                .background(favoritesOnly ? Color.miseOlive : Color.miseSage.opacity(0.55), in: Capsule())
+                .background(favoritesOnly ? palette.strongAccent : palette.softAccent.opacity(0.55), in: Capsule())
             }
             .buttonStyle(.plain)
             RecipeFilterMenu(
@@ -785,7 +815,7 @@ struct ContentView: View {
       .frame(maxWidth: 1040, alignment: .leading)
       .frame(maxWidth: .infinity, alignment: .topLeading)
     }
-    .background(Color.misePaper)
+    .background(palette.paper)
     .navigationTitle(destination.title)
   }
 
@@ -798,7 +828,7 @@ struct ContentView: View {
   @MainActor
   private func refreshCloudSync() async {
     cloudSyncStatus = await CloudKitCookbookStore.shared.accountStatusMessage()
-    guard cloudSyncStatus == "iCloud sync is on" else { return }
+    guard cloudSyncStatus == "iCloud sync is on", householdLibrary?.isActive != true else { return }
 
     do {
       for cookbook in cookbooks where cookbook.isCloudShared {
@@ -812,6 +842,7 @@ struct ContentView: View {
 }
 
 private struct FeaturedRecipeCard: View {
+  @KitchenPalette private var palette
   var recipe: Recipe
 
   var body: some View {
@@ -821,24 +852,24 @@ private struct FeaturedRecipeCard: View {
         Text("TONIGHT’S PICK")
           .font(.caption.weight(.bold))
           .tracking(1.2)
-          .foregroundStyle(Color.miseOlive)
+          .foregroundStyle(palette.accent)
         Text(recipe.name)
           .font(.system(.largeTitle, design: .serif, weight: .semibold))
-          .foregroundStyle(Color.miseInk)
+          .foregroundStyle(palette.ink)
           .fixedSize(horizontal: false, vertical: true)
         Label("\(recipe.category) · \(recipe.prepMinutes + recipe.cookMinutes) min", systemImage: "clock")
           .font(.subheadline.weight(.medium))
-          .foregroundStyle(Color.miseInk)
+          .foregroundStyle(palette.ink)
       }
       .padding(24)
       .frame(maxWidth: .infinity, alignment: .leading)
     }
-    .background(Color.miseSurface)
+    .background(palette.surface)
     .clipShape(RoundedRectangle(cornerRadius: 24))
     .overlay(alignment: .topTrailing) {
       Image(systemName: "arrow.up.right")
         .font(.subheadline.weight(.semibold))
-        .foregroundStyle(Color.miseInk)
+        .foregroundStyle(palette.ink)
         .frame(width: 44, height: 44)
         .background(.regularMaterial, in: Circle())
         .padding(17)
@@ -847,6 +878,7 @@ private struct FeaturedRecipeCard: View {
 }
 
 private struct RecipeTile: View {
+  @KitchenPalette private var palette
   @Environment(\.modelContext) private var modelContext
   @State private var editsLastCooked = false
   var recipe: Recipe
@@ -863,27 +895,27 @@ private struct RecipeTile: View {
           VStack(alignment: .leading, spacing: 4) {
             Text(recipe.name)
               .font(.headline.weight(.semibold))
-              .foregroundStyle(Color.miseInk)
+              .foregroundStyle(palette.ink)
               .lineLimit(2)
             Text("\(recipe.category) · \(recipe.prepMinutes + recipe.cookMinutes) min")
               .font(.subheadline)
-              .foregroundStyle(Color.miseInk)
+              .foregroundStyle(palette.ink)
             if recipe.rating > 0 {
               Label("\(recipe.rating) out of 5 stars", systemImage: "star.fill")
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(Color.miseOlive)
+                .foregroundStyle(palette.accent)
             }
             if let lastCooked = recipe.lastCooked {
               Text("Last cooked \(lastCooked.formatted(date: .abbreviated, time: .omitted))")
                 .font(.caption)
-                .foregroundStyle(Color.miseInk)
+                .foregroundStyle(palette.ink)
             }
           }
           .padding(.horizontal, 12)
           .padding(.bottom, 12)
           .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .background(Color.miseSurface, in: RoundedRectangle(cornerRadius: 16))
+        .background(palette.surface, in: RoundedRectangle(cornerRadius: 16))
         .accessibilityHidden(true)
         .contentShape(Rectangle())
       }
@@ -896,7 +928,7 @@ private struct RecipeTile: View {
         if recipe.isFavorite {
           Image(systemName: "heart.fill")
             .font(.caption.weight(.semibold))
-            .foregroundStyle(Color.miseCoral)
+            .foregroundStyle(palette.warning)
             .frame(width: 44, height: 44)
             .background(.regularMaterial, in: Circle())
             .accessibilityHidden(true)
@@ -930,7 +962,7 @@ private struct RecipeTile: View {
         } label: {
           Image(systemName: "ellipsis")
             .font(.subheadline.weight(.semibold))
-            .foregroundStyle(Color.miseOlive)
+            .foregroundStyle(palette.accent)
             .frame(width: 44, height: 44)
             .background(.regularMaterial, in: Circle())
             .contentShape(Circle())
@@ -1018,11 +1050,8 @@ struct RecipeArtwork: View {
               .stroke(.white.opacity(0.26), lineWidth: 1)
               .frame(width: height * 0.72, height: height * 0.72)
               .offset(x: -height * 0.36, y: height * 0.3)
-            Image(systemName: artworkSymbol)
-              .font(.system(size: height * 0.38, weight: .light))
-              .symbolRenderingMode(.hierarchical)
-              .foregroundStyle(.white.opacity(0.88))
-              .shadow(color: .black.opacity(0.14), radius: 12, y: 8)
+            DishCategoryArtwork(category: dishCategory)
+              .frame(width: height * 0.56, height: height * 0.56)
           }
           .clipped()
         }
@@ -1037,23 +1066,11 @@ struct RecipeArtwork: View {
     .accessibilityHidden(accessibilityDescription == nil)
   }
 
-  private var artworkSymbol: String {
-    switch recipe.category {
-    case "Breakfast": "sun.max.fill"
-    case "Pasta": "leaf.fill"
-    case "Vegetarian": "carrot.fill"
-    default: "fork.knife"
-    }
+  private var dishCategory: DishCategory {
+    DishCategory.infer(name: recipe.name, category: recipe.category, ingredients: recipe.ingredients)
   }
 
-  private var gradientColors: [Color] {
-    switch recipe.category {
-    case "Breakfast": [Color(red: 0.79, green: 0.56, blue: 0.30), Color(red: 0.93, green: 0.72, blue: 0.40)]
-    case "Pasta": [Color(red: 0.66, green: 0.27, blue: 0.20), Color(red: 0.85, green: 0.48, blue: 0.29)]
-    case "Vegetarian": [Color(red: 0.31, green: 0.43, blue: 0.30), Color(red: 0.61, green: 0.68, blue: 0.44)]
-    default: [Color(red: 0.43, green: 0.43, blue: 0.29), Color(red: 0.77, green: 0.58, blue: 0.38)]
-    }
-  }
+  private var gradientColors: [Color] { dishCategory.colors }
 }
 
 extension Color {

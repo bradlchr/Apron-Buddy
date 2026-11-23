@@ -2,6 +2,7 @@ import SwiftData
 import SwiftUI
 
 struct RecipeCookingDateEditor: View {
+  @KitchenPalette private var palette
   @Environment(\.dismiss) private var dismiss
   @Environment(\.modelContext) private var modelContext
   @State private var date: Date
@@ -27,6 +28,9 @@ struct RecipeCookingDateEditor: View {
           Button("Clear last cooked date", role: .destructive) { update(nil) }
         }
       }
+      .scrollContentBackground(.hidden)
+      .background(palette.paper)
+      .tint(palette.accent)
       .navigationTitle("Last cooked")
       .toolbar {
         ToolbarItem(placement: .cancellationAction) {

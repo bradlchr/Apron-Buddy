@@ -2,6 +2,7 @@ import AppIntents
 import SwiftUI
 
 struct CloudSyncStatusView: View {
+  @KitchenPalette private var palette
   @Environment(\.dismiss) private var dismiss
   @AppStorage(SiriIntegrationPreference.key) private var siriIntegrationEnabled = true
 
@@ -30,16 +31,36 @@ struct CloudSyncStatusView: View {
   var body: some View {
     NavigationStack {
       Form {
+        Section {
+          NavigationLink {
+            AppearanceSettingsView()
+          } label: {
+            Label("Appearance", systemImage: "paintpalette")
+          }
+          NavigationLink {
+            HouseholdLibrarySettings()
+          } label: {
+            Label("Household", systemImage: "house")
+          }
+          NavigationLink {
+            TipJarView()
+          } label: {
+            Label("Chef’s Tip Jar", systemImage: "heart")
+          }
+        }
+        .listRowBackground(palette.surface)
+
         Section("iCloud") {
           Label(status, systemImage: isAvailable ? "checkmark.icloud" : "icloud.slash")
             .font(.headline)
-            .foregroundStyle(isAvailable ? Color.miseOlive : Color.primary)
+            .foregroundStyle(isAvailable ? palette.accent : Color.primary)
 
           Text(iCloudDescription)
             .foregroundStyle(.secondary)
 
           Button("Check iCloud again", systemImage: "arrow.clockwise", action: onRefresh)
         }
+        .listRowBackground(palette.surface)
 
         Section {
           Toggle("Enable Siri & Shortcuts", isOn: $siriIntegrationEnabled)
@@ -50,6 +71,7 @@ struct CloudSyncStatusView: View {
         } header: {
           Text("Siri & Shortcuts")
         }
+        .listRowBackground(palette.surface)
 
         Section("Try saying") {
           VStack(alignment: .leading, spacing: 4) {
@@ -71,10 +93,13 @@ struct CloudSyncStatusView: View {
           Text("Siri can match a partial or remembered name, then asks you to confirm the recipe and person. Apron Buddy opens a Messages or Mail draft with a private iCloud share link. Review the draft and tap Send to share it.")
             .foregroundStyle(.secondary)
         }
+        .listRowBackground(palette.surface)
       }
+      .foregroundStyle(palette.ink)
       .formStyle(.grouped)
       .scrollContentBackground(.hidden)
-      .background(Color.misePaper)
+      .background(palette.paper)
+      .tint(palette.accent)
       #if os(macOS)
       .navigationTitle("Apron Buddy Settings")
       #else

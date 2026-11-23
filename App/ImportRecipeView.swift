@@ -9,6 +9,7 @@ import AppKit
 #endif
 
 struct ImportRecipeView: View {
+  @KitchenPalette private var palette
   @Environment(\.dismiss) private var dismiss
   @Environment(\.modelContext) private var modelContext
   @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -50,7 +51,7 @@ struct ImportRecipeView: View {
           VStack(alignment: .leading, spacing: 8) {
             Text("Bring a recipe in")
         .font(.system(.largeTitle, design: .serif, weight: .semibold))
-              .foregroundStyle(Color.miseInk)
+              .foregroundStyle(palette.ink)
             Text("Apron Buddy reads a link or document, then uses on-device AI to turn it into a recipe you can edit.")
               .font(.subheadline)
               .foregroundStyle(.secondary)
@@ -67,7 +68,7 @@ struct ImportRecipeView: View {
         .frame(maxWidth: 680, alignment: .leading)
         .frame(maxWidth: .infinity, alignment: .topLeading)
       }
-      .background(Color.misePaper)
+      .background(palette.paper)
       .navigationTitle(importedDraft == nil ? "Import recipe" : "Review recipe")
       .toolbar {
         ToolbarItem(placement: .cancellationAction) {
@@ -184,7 +185,7 @@ struct ImportRecipeView: View {
       VStack(alignment: .leading, spacing: 10) {
         Label("Website link", systemImage: "link")
           .font(.headline)
-          .foregroundStyle(Color.miseInk)
+          .foregroundStyle(palette.ink)
         HStack(spacing: 10) {
           TextField("Paste a recipe URL", text: $link)
             .textFieldStyle(.roundedBorder)
@@ -201,7 +202,7 @@ struct ImportRecipeView: View {
             else { Image(systemName: "arrow.right") }
           }
           .buttonStyle(.borderedProminent)
-          .tint(Color.miseOlive)
+          .tint(palette.accent)
           .disabled(link.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isReading)
           .accessibilityLabel("Read recipe link")
           .accessibilityHint("Reads the recipe at this address.")
@@ -210,11 +211,11 @@ struct ImportRecipeView: View {
       }
 
       HStack(spacing: 12) {
-        Rectangle().fill(Color.miseInk.opacity(0.12)).frame(height: 1)
+        Rectangle().fill(palette.ink.opacity(0.12)).frame(height: 1)
         Text("OR")
           .font(.caption.weight(.semibold))
           .foregroundStyle(.tertiary)
-        Rectangle().fill(Color.miseInk.opacity(0.12)).frame(height: 1)
+        Rectangle().fill(palette.ink.opacity(0.12)).frame(height: 1)
       }
 
       Button {
@@ -224,14 +225,14 @@ struct ImportRecipeView: View {
         HStack(spacing: 14) {
           Image(systemName: "document.viewfinder")
             .font(.title2)
-            .foregroundStyle(Color.miseOlive)
+            .foregroundStyle(palette.accent)
             .frame(width: 50, height: 50)
-            .background(Color.miseSage, in: RoundedRectangle(cornerRadius: 14))
+            .background(palette.softAccent, in: RoundedRectangle(cornerRadius: 14))
             .accessibilityHidden(true)
           VStack(alignment: .leading, spacing: 3) {
             Text("Choose a document")
               .font(.headline)
-              .foregroundStyle(Color.miseInk)
+              .foregroundStyle(palette.ink)
             Text("PDF, text, or a recipe image")
               .font(.subheadline)
               .foregroundStyle(.secondary)
@@ -243,7 +244,7 @@ struct ImportRecipeView: View {
             .accessibilityHidden(true)
         }
         .padding(15)
-        .background(Color.miseSurface, in: RoundedRectangle(cornerRadius: 18))
+        .background(palette.surface, in: RoundedRectangle(cornerRadius: 18))
         .contentShape(RoundedRectangle(cornerRadius: 18))
       }
       .buttonStyle(.plain)
@@ -260,10 +261,10 @@ struct ImportRecipeView: View {
       } label: {
         Label("Scan recipe pages with camera", systemImage: "document.viewfinder")
           .font(.subheadline.weight(.medium))
-          .foregroundStyle(Color.miseOlive)
+          .foregroundStyle(palette.accent)
           .frame(maxWidth: .infinity, alignment: .leading)
           .padding(14)
-          .background(Color.miseSurface, in: RoundedRectangle(cornerRadius: 14))
+          .background(palette.surface, in: RoundedRectangle(cornerRadius: 14))
       }
       .buttonStyle(.plain)
 #endif
@@ -274,10 +275,10 @@ struct ImportRecipeView: View {
       } label: {
         Label(isReading && !batchProgress.isEmpty ? "Importing recipes…" : "Import a folder of recipes", systemImage: "folder.badge.plus")
           .font(.subheadline.weight(.medium))
-          .foregroundStyle(Color.miseOlive)
+          .foregroundStyle(palette.accent)
           .frame(maxWidth: .infinity, alignment: .leading)
           .padding(14)
-          .background(Color.miseSurface, in: RoundedRectangle(cornerRadius: 14))
+          .background(palette.surface, in: RoundedRectangle(cornerRadius: 14))
       }
       .buttonStyle(.plain)
       .disabled(isReading)
@@ -289,14 +290,14 @@ struct ImportRecipeView: View {
         VStack(alignment: .leading, spacing: 4) {
           Label("Select multiple recipe files…", systemImage: "doc.on.doc")
             .font(.subheadline.weight(.medium))
-            .foregroundStyle(Color.miseOlive)
+            .foregroundStyle(palette.accent)
           Text("Choose files directly from Google Drive, iCloud Drive, or another Files location.")
             .font(.caption)
             .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(14)
-        .background(Color.miseSurface, in: RoundedRectangle(cornerRadius: 14))
+        .background(palette.surface, in: RoundedRectangle(cornerRadius: 14))
       }
       .buttonStyle(.plain)
       .disabled(isReading)
@@ -306,11 +307,11 @@ struct ImportRecipeView: View {
           ProgressView()
           Text(batchProgress.isEmpty ? "Reading recipe…" : batchProgress)
             .font(.subheadline.weight(.medium))
-            .foregroundStyle(Color.miseInk)
+            .foregroundStyle(palette.ink)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(13)
-        .background(Color.miseSage.opacity(0.55), in: RoundedRectangle(cornerRadius: 14))
+        .background(palette.softAccent.opacity(0.55), in: RoundedRectangle(cornerRadius: 14))
         .accessibilityElement(children: .combine)
       } else if !batchProgress.isEmpty {
         Text(batchProgress)
@@ -326,7 +327,7 @@ struct ImportRecipeView: View {
           HStack {
             Text("Paste recipe text")
               .font(.headline)
-              .foregroundStyle(Color.miseInk)
+              .foregroundStyle(palette.ink)
             Spacer()
             Button("Hide") { isPastingText = false }
               .font(.subheadline)
@@ -335,7 +336,7 @@ struct ImportRecipeView: View {
             .frame(minHeight: 130)
             .padding(8)
             .scrollContentBackground(.hidden)
-            .background(Color.miseSurface, in: RoundedRectangle(cornerRadius: 15))
+            .background(palette.surface, in: RoundedRectangle(cornerRadius: 15))
             .overlay(alignment: .topLeading) {
               if manualPasteText.isEmpty {
                 Text("Ingredients, method, or the full recipe…")
@@ -355,7 +356,7 @@ struct ImportRecipeView: View {
               .frame(height: 48)
           }
           .buttonStyle(.borderedProminent)
-          .tint(Color.miseOlive)
+          .tint(palette.accent)
           .disabled(manualPasteText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isReading)
         }
       } else {
@@ -365,7 +366,7 @@ struct ImportRecipeView: View {
         } label: {
           Label("Paste recipe text instead…", systemImage: "text.alignleft")
             .font(.subheadline.weight(.medium))
-            .foregroundStyle(Color.miseOlive)
+            .foregroundStyle(palette.accent)
         }
         .buttonStyle(.plain)
       }
@@ -376,14 +377,14 @@ struct ImportRecipeView: View {
     VStack(alignment: .leading, spacing: 18) {
       HStack(spacing: 8) {
         Image(systemName: wasAIExtracted ? "sparkles" : "doc.text")
-          .foregroundStyle(Color.miseOlive)
+          .foregroundStyle(palette.accent)
         Text(wasAIExtracted ? "AI draft · review before saving" : "Recipe draft · review before saving")
           .font(.subheadline.weight(.semibold))
-          .foregroundStyle(Color.miseOlive)
+          .foregroundStyle(palette.accent)
       }
       .padding(.horizontal, 13)
       .padding(.vertical, 9)
-      .background(Color.miseSage.opacity(0.7), in: Capsule())
+      .background(palette.softAccent.opacity(0.7), in: Capsule())
 
       if isBatchImportActive {
         Text("Batch import · " + String(batchIndex + 1) + " of " + String(batchFiles.count) + " · " + sourceName)
@@ -441,14 +442,14 @@ struct ImportRecipeView: View {
           ForEach(RecipeGoodFor.allCases) { occasion in
             Toggle(occasion.title, isOn: goodForBinding(occasion))
               .toggleStyle(.button)
-              .tint(Color.miseOlive)
+              .tint(palette.accent)
               .font(.caption.weight(.medium))
               .frame(minHeight: 44)
           }
         }
       }
       .padding(14)
-      .background(Color.miseSurface, in: RoundedRectangle(cornerRadius: 16))
+      .background(palette.surface, in: RoundedRectangle(cornerRadius: 16))
 
       if !initialDraft.ingredients.isEmpty {
         VStack(alignment: .leading, spacing: 9) {
@@ -456,20 +457,25 @@ struct ImportRecipeView: View {
             .font(.caption.weight(.bold))
             .tracking(1)
             .foregroundStyle(.secondary)
-          ForEach(initialDraft.ingredients) { ingredient in
-            HStack(spacing: 8) {
-              Image(systemName: "circle.fill")
-                .font(.system(size: 5))
-                .foregroundStyle(Color.miseOlive)
-                .accessibilityHidden(true)
-              Text(IngredientFormatterForImport.format(ingredient))
-                .font(.subheadline)
+          ForEach(RecipeIngredientSection.group(initialDraft.ingredients)) { section in
+            if !section.title.isEmpty {
+              Text(section.title).font(.subheadline.weight(.semibold)).accessibilityAddTraits(.isHeader)
+            }
+            ForEach(section.ingredients) { ingredient in
+              HStack(spacing: 8) {
+                Image(systemName: "circle.fill")
+                  .font(.system(size: 5))
+                  .foregroundStyle(palette.accent)
+                  .accessibilityHidden(true)
+                Text(IngredientFormatterForImport.format(ingredient))
+                  .font(.subheadline)
+              }
             }
           }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16)
-        .background(Color.miseSurface, in: RoundedRectangle(cornerRadius: 16))
+        .background(palette.surface, in: RoundedRectangle(cornerRadius: 16))
       }
 
       if !initialDraft.steps.isEmpty {
@@ -489,7 +495,7 @@ struct ImportRecipeView: View {
             }
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.miseSurface, in: RoundedRectangle(cornerRadius: 12))
+            .background(palette.surface, in: RoundedRectangle(cornerRadius: 12))
           }
         }
       }
@@ -500,7 +506,7 @@ struct ImportRecipeView: View {
     VStack(alignment: .leading, spacing: 11) {
       Text("Finished dish photo")
         .font(.headline)
-        .foregroundStyle(Color.miseInk)
+        .foregroundStyle(palette.ink)
 
       if let photoData, let image = PlatformImage.data(photoData) {
         GeometryReader { geometry in
@@ -524,7 +530,7 @@ struct ImportRecipeView: View {
         PhotosPicker(selection: $selectedPhoto, matching: .images) {
           Label(photoData == nil ? "Choose photo" : "Change photo", systemImage: "photo")
             .font(.subheadline.weight(.medium))
-            .foregroundStyle(Color.miseOlive)
+            .foregroundStyle(palette.accent)
         }
 #if os(iOS)
         Button {
@@ -536,7 +542,7 @@ struct ImportRecipeView: View {
         } label: {
           Label(photoData == nil ? "Take photo" : "Retake photo", systemImage: "camera")
             .font(.subheadline.weight(.medium))
-            .foregroundStyle(Color.miseOlive)
+            .foregroundStyle(palette.accent)
         }
         .buttonStyle(.plain)
 #endif
@@ -551,7 +557,7 @@ struct ImportRecipeView: View {
       }
     }
     .padding(14)
-    .background(Color.miseSurface, in: RoundedRectangle(cornerRadius: 16))
+    .background(palette.surface, in: RoundedRectangle(cornerRadius: 16))
     .onChange(of: selectedPhoto) { _, item in
       guard let item else { return }
       Task { photoData = try? await item.loadTransferable(type: Data.self) }
@@ -604,7 +610,7 @@ struct ImportRecipeView: View {
         }
       }
       .pickerStyle(.menu)
-      .tint(Color.miseOlive)
+      .tint(palette.accent)
     }
   }
 
@@ -876,10 +882,11 @@ struct ImportRecipeView: View {
 
 private enum IngredientFormatterForImport {
   static func format(_ ingredient: RecipeIngredient) -> String {
-    let quantity = ingredient.amount.rounded() == ingredient.amount
-      ? String(Int(ingredient.amount))
-      : ingredient.amount.formatted(.number.precision(.fractionLength(0...2)))
-    return [quantity, ingredient.unit, ingredient.name, ingredient.note].filter { !$0.isEmpty }.joined(separator: " ")
+    let ingredient = IngredientNormalization.clean(ingredient)
+    let measurement = ingredient.amount > 0
+      ? [KitchenQuantity.format(ingredient.amount), KitchenQuantity.unitLabel(ingredient.unit, amount: ingredient.amount)]
+      : []
+    return (measurement + [ingredient.name, ingredient.note]).filter { !$0.isEmpty }.joined(separator: " ")
   }
 }
 

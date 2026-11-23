@@ -1,12 +1,15 @@
 import SwiftUI
 import SwiftData
+import UniformTypeIdentifiers
 #if os(iOS)
 import WatchConnectivity
 #endif
 
 struct RecipeDetailView: View {
+  @KitchenPalette private var palette
   @Environment(\.dismiss) private var dismiss
   @Environment(\.modelContext) private var modelContext
+  @Environment(\.householdLibrary) private var householdLibrary
   @Environment(\.dynamicTypeSize) private var dynamicTypeSize
   @Query private var cookbooks: [Cookbook]
   @Query private var allRecipes: [Recipe]
@@ -16,6 +19,9 @@ struct RecipeDetailView: View {
   @State private var isCooking = false
   #endif
   @State private var isEditing = false
+  @State private var pdfDocument: RecipePDFDocument?
+  @State private var exportsPDF = false
+  @State private var showsPDFError = false
   @State private var isConfirmingDelete = false
   @State private var isDeleteErrorPresented = false
   @State private var deleteErrorTitle = "Couldn't delete recipe"
@@ -42,7 +48,7 @@ struct RecipeDetailView: View {
             Button { dismiss() } label: {
               Image(systemName: "xmark")
                 .font(.caption.weight(.bold))
-                .foregroundStyle(Color.miseInk)
+                .foregroundStyle(palette.ink)
                 .frame(width: 44, height: 44)
                 .background(.regularMaterial, in: Circle())
             }
@@ -52,16 +58,26 @@ struct RecipeDetailView: View {
           }
           .overlay(alignment: .topTrailing) {
             HStack(spacing: 8) {
-              Button {
-                RecipePrinting.print(recipe)
+              Menu {
+                Button("Print…", systemImage: "printer") {
+                  showsPDFError = !RecipePrinting.print(recipe)
+                }
+                Button("Export PDF…", systemImage: "square.and.arrow.up") {
+                  guard let data = RecipePrinting.pdf(for: recipe) else {
+                    showsPDFError = true
+                    return
+                  }
+                  pdfDocument = RecipePDFDocument(data: data)
+                  exportsPDF = true
+                }
               } label: {
                 Image(systemName: "printer")
                   .font(.subheadline.weight(.semibold))
-                  .foregroundStyle(Color.miseInk)
+                  .foregroundStyle(palette.ink)
                   .frame(width: 44, height: 44)
                   .background(.regularMaterial, in: Circle())
               }
-              .accessibilityLabel("Print recipe")
+              .accessibilityLabel("Print or export recipe")
               .buttonStyle(.plain)
 
               Button {
@@ -69,7 +85,7 @@ struct RecipeDetailView: View {
               } label: {
                 Label("Edit", systemImage: "pencil")
                   .font(.subheadline.weight(.semibold))
-                  .foregroundStyle(Color.miseInk)
+                  .foregroundStyle(palette.ink)
                   .padding(.horizontal, 14)
                   .padding(.vertical, 10)
                   .frame(minHeight: 44)
@@ -99,15 +115,15 @@ struct RecipeDetailView: View {
             Text(recipe.category.uppercased())
               .font(.caption.weight(.bold))
               .tracking(1.2)
-              .foregroundStyle(Color.miseOlive)
-            Circle().fill(Color.miseOlive.opacity(0.5)).frame(width: 4, height: 4)
+              .foregroundStyle(palette.accent)
+            Circle().fill(palette.accent.opacity(0.5)).frame(width: 4, height: 4)
             Text(recipe.difficulty)
               .font(.caption.weight(.medium))
               .foregroundStyle(.secondary)
           }
           Text(recipe.name)
             .font(.system(.largeTitle, design: .serif, weight: .semibold))
-            .foregroundStyle(Color.miseInk)
+            .foregroundStyle(palette.ink)
           Text(recipe.summary)
             .font(.body)
             .foregroundStyle(.secondary)
@@ -125,13 +141,13 @@ struct RecipeDetailView: View {
             }
           }
           .font(.subheadline.weight(.medium))
-          .foregroundStyle(Color.miseOlive)
+          .foregroundStyle(palette.accent)
           .padding(.top, 4)
 
           VStack(alignment: .leading, spacing: 10) {
             Text("Your rating")
               .font(.subheadline.weight(.semibold))
-              .foregroundStyle(Color.miseInk)
+              .foregroundStyle(palette.ink)
             HStack(spacing: 8) {
               ForEach(1...5, id: \.self) { value in
                 Button {
@@ -140,7 +156,7 @@ struct RecipeDetailView: View {
                 } label: {
                   Image(systemName: value <= recipe.rating ? "star.fill" : "star")
                     .font(.title3)
-                    .foregroundStyle(value <= recipe.rating ? Color.miseOlive : Color.secondary)
+                    .foregroundStyle(value <= recipe.rating ? palette.accent : Color.secondary)
                     .frame(width: 44, height: 44)
                     .contentShape(Rectangle())
                 }
@@ -164,7 +180,7 @@ struct RecipeDetailView: View {
               if recipe.isFavorite {
                 Label("Favorite", systemImage: "heart.fill")
                   .font(.caption.weight(.medium))
-                  .foregroundStyle(Color.miseCoral)
+                  .foregroundStyle(palette.warning)
               }
             }
           }
@@ -172,7 +188,7 @@ struct RecipeDetailView: View {
           VStack(alignment: .leading, spacing: 10) {
             Text("Good for")
               .font(.subheadline.weight(.semibold))
-              .foregroundStyle(Color.miseInk)
+              .foregroundStyle(palette.ink)
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 132), spacing: 8)], alignment: .leading, spacing: 8) {
               ForEach(RecipeGoodFor.allCases) { occasion in
                 Button {
@@ -186,9 +202,9 @@ struct RecipeDetailView: View {
                   Label(occasion.title, systemImage: occasion.symbol)
                     .font(.caption.weight(.medium))
                     .frame(maxWidth: .infinity, minHeight: 44)
-                    .foregroundStyle(recipe.goodFor.contains(occasion) ? Color.white : Color.miseOlive)
+                    .foregroundStyle(recipe.goodFor.contains(occasion) ? Color.white : palette.accent)
                     .background(
-                      recipe.goodFor.contains(occasion) ? Color.miseOlive : Color.miseSage.opacity(0.55),
+                      recipe.goodFor.contains(occasion) ? palette.accent : palette.softAccent.opacity(0.55),
                       in: Capsule()
                     )
                 }
@@ -207,7 +223,7 @@ struct RecipeDetailView: View {
               VStack(alignment: .leading, spacing: 10) {
                 Text("Ingredients")
                   .font(.title2.weight(.semibold))
-                  .foregroundStyle(Color.miseInk)
+                  .foregroundStyle(palette.ink)
                 Text("Adjusted for your table")
                   .font(.subheadline)
                   .foregroundStyle(.secondary)
@@ -222,7 +238,7 @@ struct RecipeDetailView: View {
                 VStack(alignment: .leading, spacing: 3) {
                   Text("Ingredients")
                     .font(.title2.weight(.semibold))
-                    .foregroundStyle(Color.miseInk)
+                    .foregroundStyle(palette.ink)
                   Text("Adjusted for your table")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
@@ -247,7 +263,7 @@ struct RecipeDetailView: View {
               Image(systemName: "minus")
                 .font(.caption.weight(.bold))
                 .frame(width: 44, height: 44)
-                .background(Color.misePaper, in: Circle())
+                .background(palette.paper, in: Circle())
             }
             .accessibilityLabel("Decrease servings")
             Text("\(servings)")
@@ -258,65 +274,74 @@ struct RecipeDetailView: View {
               Image(systemName: "plus")
                 .font(.caption.weight(.bold))
                 .frame(width: 44, height: 44)
-                .background(Color.misePaper, in: Circle())
+                .background(palette.paper, in: Circle())
             }
             .accessibilityLabel("Increase servings")
           }
           .buttonStyle(.plain)
 
-          ForEach(recipe.ingredients) { ingredient in
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-              Image(systemName: "circle")
-                .font(.caption2)
-                .foregroundStyle(Color.miseOlive)
-                .accessibilityHidden(true)
-              Text(IngredientFormatter.format(ingredient, from: recipe.servings, to: servings, metric: usesMetric))
-                .font(.body)
-                .foregroundStyle(Color.miseInk)
-              Spacer(minLength: 4)
-              if !ingredient.note.isEmpty {
-                Text(ingredient.note)
-                  .font(.caption)
-                  .foregroundStyle(.secondary)
-                  .multilineTextAlignment(.trailing)
-              }
+          ForEach(RecipeIngredientSection.group(recipe.ingredients)) { section in
+            if !section.title.isEmpty {
+              Text(section.title)
+                .font(.headline)
+                .foregroundStyle(palette.ink)
+                .accessibilityAddTraits(.isHeader)
+                .padding(.top, 6)
             }
-            .accessibilityElement(children: .combine)
-            .padding(.vertical, 5)
+            ForEach(section.ingredients) { ingredient in
+              HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Image(systemName: "circle")
+                  .font(.caption2)
+                  .foregroundStyle(palette.accent)
+                  .accessibilityHidden(true)
+                Text(IngredientFormatter.format(ingredient, from: recipe.servings, to: servings, metric: usesMetric))
+                  .font(.body)
+                  .foregroundStyle(palette.ink)
+                Spacer(minLength: 4)
+                if !ingredient.note.isEmpty {
+                  Text(ingredient.note)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.trailing)
+                }
+              }
+              .accessibilityElement(children: .combine)
+              .padding(.vertical, 5)
+            }
           }
         }
         .padding(20)
-        .background(Color.miseSurface, in: RoundedRectangle(cornerRadius: 20))
+        .background(palette.surface, in: RoundedRectangle(cornerRadius: 20))
 
         VStack(alignment: .leading, spacing: 14) {
           Text("Method")
             .font(.title2.weight(.semibold))
-            .foregroundStyle(Color.miseInk)
+            .foregroundStyle(palette.ink)
           ForEach(Array(recipe.steps.enumerated()), id: \.element.id) { index, step in
             HStack(alignment: .top, spacing: 14) {
               Text(String(format: "%02d", index + 1))
                 .font(.caption.weight(.bold).monospacedDigit())
-                .foregroundStyle(Color.miseOlive)
+                .foregroundStyle(palette.accent)
                 .frame(width: 34, height: 34)
-                .background(Color.miseSage, in: Circle())
+                .background(palette.softAccent, in: Circle())
               VStack(alignment: .leading, spacing: 5) {
                 Text(step.title)
                   .font(.headline.weight(.semibold))
-                  .foregroundStyle(Color.miseInk)
+                  .foregroundStyle(palette.ink)
                 Text(step.detail)
                   .font(.body)
                   .foregroundStyle(.secondary)
                 if step.timerMinutes > 0 {
                   Label("\(step.timerMinutes) minute timer", systemImage: "timer")
                     .font(.caption.weight(.medium))
-                    .foregroundStyle(Color.miseOlive)
+                    .foregroundStyle(palette.accent)
                     .padding(.top, 3)
                 }
               }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(16)
-            .background(Color.miseSurface, in: RoundedRectangle(cornerRadius: 18))
+            .background(palette.surface, in: RoundedRectangle(cornerRadius: 18))
             .accessibilityElement(children: .combine)
           }
         }
@@ -324,15 +349,15 @@ struct RecipeDetailView: View {
         VStack(alignment: .leading, spacing: 8) {
           Text("Your notes")
             .font(.title2.weight(.semibold))
-            .foregroundStyle(Color.miseInk)
+            .foregroundStyle(palette.ink)
           Text(recipe.userNotes.isEmpty ? "Tap Edit to add your substitutions, adjustments, or reminders." : recipe.userNotes)
             .font(.body)
-            .foregroundStyle(recipe.userNotes.isEmpty ? Color.secondary : Color.miseInk)
+            .foregroundStyle(recipe.userNotes.isEmpty ? Color.secondary : palette.ink)
             .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(18)
-        .background(Color.miseSurface, in: RoundedRectangle(cornerRadius: 18))
+        .background(palette.surface, in: RoundedRectangle(cornerRadius: 18))
 
         if !recipe.sourceURL.isEmpty, let url = URL(string: recipe.sourceURL) {
           Link(destination: url) {
@@ -345,7 +370,7 @@ struct RecipeDetailView: View {
       .frame(maxWidth: 760, alignment: .leading)
       .frame(maxWidth: .infinity)
     }
-    .background(Color.misePaper)
+    .background(palette.paper)
     .confirmationDialog("Delete \(recipe.name)?", isPresented: $isConfirmingDelete, titleVisibility: .visible) {
       Button("Delete Recipe", role: .destructive, action: deleteRecipe)
       Button("Cancel", role: .cancel) { }
@@ -368,9 +393,9 @@ struct RecipeDetailView: View {
         } label: {
           Image(systemName: recipe.isFavorite ? "heart.fill" : "heart")
             .font(.title3)
-            .foregroundStyle(recipe.isFavorite ? Color.miseCoral : Color.miseOlive)
+            .foregroundStyle(recipe.isFavorite ? palette.warning : palette.accent)
             .frame(width: 52, height: 52)
-            .background(Color.miseSurface, in: RoundedRectangle(cornerRadius: 16))
+            .background(palette.surface, in: RoundedRectangle(cornerRadius: 16))
         }
         .accessibilityLabel(recipe.isFavorite ? "Remove from favorites" : "Add to favorites")
         .buttonStyle(.plain)
@@ -383,9 +408,9 @@ struct RecipeDetailView: View {
         } label: {
           Image(systemName: "square.and.arrow.up")
             .font(.title3)
-            .foregroundStyle(Color.miseOlive)
+            .foregroundStyle(palette.accent)
             .frame(width: 52, height: 52)
-            .background(Color.miseSurface, in: RoundedRectangle(cornerRadius: 16))
+            .background(palette.surface, in: RoundedRectangle(cornerRadius: 16))
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Share recipe")
@@ -396,9 +421,12 @@ struct RecipeDetailView: View {
           CookingSessionStore.shared.start(.init(
             id: UUID(),
             recipeID: recipe.id,
+            libraryID: householdLibrary?.activeID,
             recipeName: recipe.name,
             servings: servings,
-            steps: recipe.steps.map { .init(title: $0.title, instructions: $0.detail, timerMinutes: $0.timerMinutes) }
+            steps: recipe.steps.map { .init(title: $0.title, instructions: $0.detail, timerMinutes: $0.timerMinutes) },
+            ingredientMeasurements: IngredientFormatter.measurementLines(for: recipe, servings: servings, metric: usesMetric),
+            usesMetricMeasurements: usesMetric
           ))
           #else
           isCooking = true
@@ -408,7 +436,7 @@ struct RecipeDetailView: View {
             .font(.headline.weight(.semibold))
             .frame(maxWidth: .infinity)
             .frame(height: 52)
-            .background(Color.miseOlive, in: RoundedRectangle(cornerRadius: 16))
+            .background(palette.accent, in: RoundedRectangle(cornerRadius: 16))
             .foregroundStyle(.white)
         }
         .buttonStyle(.plain)
@@ -418,6 +446,13 @@ struct RecipeDetailView: View {
       .padding(.vertical, 12)
       .background(.regularMaterial)
     }
+    .fileExporter(isPresented: $exportsPDF, document: pdfDocument, contentType: .pdf, defaultFilename: recipe.name) { result in
+      if case .failure = result { showsPDFError = true }
+      pdfDocument = nil
+    }
+    .alert("Couldn’t print or export this recipe", isPresented: $showsPDFError) {
+      Button("OK", role: .cancel) {}
+    }
     .sheet(isPresented: $isEditing) {
       RecipeEditorView(recipe: recipe) {
         saveRecipeChanges()
@@ -425,7 +460,7 @@ struct RecipeDetailView: View {
     }
     #if !os(iOS)
     .sheet(isPresented: $isCooking) {
-      CookingModeView(recipe: recipe, servings: servings) {
+      CookingModeView(recipe: recipe, servings: servings, usesMetric: usesMetric) {
         try recipe.saveLastCooked(.now, in: modelContext)
       }
         .frame(minWidth: 340, minHeight: 450)
@@ -436,12 +471,12 @@ struct RecipeDetailView: View {
         VStack(spacing: 16) {
           Image(systemName: "person.crop.circle.badge.plus")
             .font(.system(size: 38))
-            .foregroundStyle(Color.miseOlive)
+            .foregroundStyle(palette.accent)
             .frame(width: 76, height: 76)
-            .background(Color.miseSage, in: RoundedRectangle(cornerRadius: 22))
+            .background(palette.softAccent, in: RoundedRectangle(cornerRadius: 22))
           Text("Share \(recipe.name)")
             .font(.title2.weight(.semibold))
-            .foregroundStyle(Color.miseInk)
+            .foregroundStyle(palette.ink)
           Text("Invite someone with a private iCloud recipe share, or send a text copy.")
             .font(.subheadline)
             .foregroundStyle(.secondary)
@@ -454,7 +489,7 @@ struct RecipeDetailView: View {
               .frame(height: 48)
           }
           .buttonStyle(.borderedProminent)
-          .tint(Color.miseOlive)
+          .tint(palette.accent)
 
           ShareLink(item: shareText) {
             Label("Share as text", systemImage: "text.alignleft")
@@ -465,7 +500,7 @@ struct RecipeDetailView: View {
         }
         .padding(24)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.misePaper)
+        .background(palette.paper)
         .navigationTitle("Share recipe")
         .toolbar {
           ToolbarItem(placement: .cancellationAction) {
@@ -563,8 +598,16 @@ struct RecipeDetailView: View {
   }
 }
 
-private enum IngredientFormatter {
+enum IngredientFormatter {
+  static func measurementLines(for recipe: Recipe, servings: Int, metric: Bool) -> [String] {
+    RecipeIngredientSection.group(recipe.ingredients).flatMap { section in
+      let ingredients = section.ingredients.map { format($0, from: recipe.servings, to: servings, metric: metric) }
+      return section.title.isEmpty ? ingredients : [section.title + ":"] + ingredients
+    }
+  }
+
   static func format(_ ingredient: RecipeIngredient, from originalServings: Int, to servings: Int, metric: Bool) -> String {
+    let ingredient = IngredientNormalization.clean(ingredient)
     guard ingredient.amount > 0 else { return ingredient.name }
     var amount = ingredient.amount * Double(servings) / Double(max(1, originalServings))
     var unit = ingredient.unit.lowercased()
@@ -582,28 +625,25 @@ private enum IngredientFormatter {
 
     if unit == "cup" || unit == "cups" { unit = "cup" }
     if unit == "lb" || unit == "lbs" { unit = "lb" }
-    let amountText: String
-    if amount.rounded() == amount {
-      amountText = Int(amount).formatted()
-    } else if amount < 10 {
-      amountText = amount.formatted(.number.precision(.fractionLength(0...2)))
-    } else {
-      amountText = amount.rounded().formatted()
-    }
-    let unitText = unit.isEmpty ? "" : " \(unit)"
+    let amountText = KitchenQuantity.format(amount)
+    let unitText = unit.isEmpty ? "" : " \(KitchenQuantity.unitLabel(unit, amount: amount))"
     return "\(amountText)\(unitText) \(ingredient.name)"
   }
 }
 
 #if !os(iOS)
 private struct CookingModeView: View {
+  @KitchenPalette private var palette
   @Environment(\.dismiss) private var dismiss
   @Environment(\.dynamicTypeSize) private var dynamicTypeSize
   @State private var currentStep = 0
   @State private var timerEnd: Date?
+  @State private var showsIngredients = false
+  @State private var measuredInstructions: [String] = []
   @State private var showsCompletionError = false
   var recipe: Recipe
   var servings: Int
+  var usesMetric: Bool
   var recordCompletion: () throws -> Void
 
   private var step: RecipeStep? {
@@ -618,21 +658,26 @@ private struct CookingModeView: View {
           Text("COOKING MODE")
             .font(.caption.weight(.bold))
             .tracking(1.2)
-            .foregroundStyle(Color.miseOlive)
+            .foregroundStyle(palette.accent)
           Text(recipe.name)
             .font(.headline.weight(.semibold))
-            .foregroundStyle(Color.miseInk)
+            .foregroundStyle(palette.ink)
             .lineLimit(2)
         }
         Spacer()
+        Button("Ingredients", systemImage: "list.bullet") { showsIngredients = true }
+          .labelStyle(.iconOnly)
+          .popover(isPresented: $showsIngredients) {
+            CookingIngredientsPeek(ingredients: IngredientFormatter.measurementLines(for: recipe, servings: servings, metric: usesMetric))
+          }
         Button("Done") { dismiss() }
           .font(.subheadline.weight(.semibold))
-          .foregroundStyle(Color.miseOlive)
+          .foregroundStyle(palette.accent)
           .frame(minWidth: 44, minHeight: 44)
       }
 
       ProgressView(value: Double(currentStep + 1), total: Double(max(1, recipe.steps.count)))
-        .tint(Color.miseOlive)
+        .tint(palette.accent)
         .accessibilityHidden(true)
       Text("STEP \(currentStep + 1) OF \(max(1, recipe.steps.count)) · SERVES \(servings)")
         .font(.caption.weight(.bold))
@@ -643,30 +688,30 @@ private struct CookingModeView: View {
         VStack(alignment: .leading, spacing: 14) {
           Text(step.title)
             .font(.system(.largeTitle, design: .serif, weight: .semibold))
-            .foregroundStyle(Color.miseInk)
+            .foregroundStyle(palette.ink)
             .accessibilityAddTraits(.isHeader)
-          Text(step.detail)
-            .font(.title3)
-            .foregroundStyle(.secondary)
-            .fixedSize(horizontal: false, vertical: true)
+          CookingInstructionText(instruction: measuredInstructions.indices.contains(currentStep) ? measuredInstructions[currentStep] : step.detail) { seconds in
+            timerEnd = .now.addingTimeInterval(Double(seconds))
+          }
+          .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
 
-        if step.timerMinutes > 0 {
+        if defaultTimerSeconds > 0 || timerEnd != nil {
           ViewThatFits(in: .horizontal) {
             HStack(spacing: 14) {
               timerStatus
               Spacer(minLength: 0)
-              timerButton(for: step)
+              timerButton
             }
             VStack(alignment: .leading, spacing: 12) {
               timerStatus
-              timerButton(for: step)
+              timerButton
                 .frame(maxWidth: .infinity, minHeight: 44)
             }
           }
           .padding(16)
-          .background(Color.miseSurface, in: RoundedRectangle(cornerRadius: 18))
+          .background(palette.surface, in: RoundedRectangle(cornerRadius: 18))
         }
       }
 
@@ -684,10 +729,18 @@ private struct CookingModeView: View {
         }
       }
       .buttonStyle(.borderedProminent)
-      .tint(Color.miseOlive)
+      .tint(palette.accent)
     }
     .padding(24)
-    .background(Color.misePaper)
+    .background(palette.paper)
+    .task {
+      let instructions = recipe.steps.map(\.detail)
+      let ingredients = recipe.ingredients
+      measuredInstructions = CookingStepMeasurements.baseline(ingredients: ingredients, steps: instructions, originalServings: recipe.servings, servings: servings, metric: usesMetric)
+      if let enhanced = await CookingStepMeasurements.enhanced(ingredients: ingredients, steps: instructions, originalServings: recipe.servings, servings: servings, metric: usesMetric), !Task.isCancelled {
+        measuredInstructions = enhanced
+      }
+    }
     .alert("Couldn’t save the last cooked date", isPresented: $showsCompletionError) {
       Button("OK", role: .cancel) { }
     }
@@ -697,7 +750,7 @@ private struct CookingModeView: View {
     HStack(spacing: 14) {
       Image(systemName: "timer")
         .font(.title2)
-        .foregroundStyle(Color.miseOlive)
+        .foregroundStyle(palette.accent)
         .accessibilityHidden(true)
       VStack(alignment: .leading, spacing: 2) {
         Text("Step timer")
@@ -707,10 +760,10 @@ private struct CookingModeView: View {
             let remaining = max(0, Int(timerEnd.timeIntervalSince(context.date)))
             Text(remaining == 0 ? "Timer finished" : remaining.formattedTime)
               .font(.subheadline.monospacedDigit())
-              .foregroundStyle(remaining == 0 ? Color.miseCoral : .secondary)
+              .foregroundStyle(remaining == 0 ? palette.warning : .secondary)
           }
         } else {
-          Text("\(step?.timerMinutes ?? 0) minutes")
+          Text(Duration.seconds(defaultTimerSeconds).formatted(.units(allowed: [.hours, .minutes, .seconds], width: .wide)))
             .font(.subheadline)
             .foregroundStyle(.secondary)
         }
@@ -718,12 +771,17 @@ private struct CookingModeView: View {
     }
   }
 
-  private func timerButton(for step: RecipeStep) -> some View {
-    Button(timerEnd == nil ? "Start \(step.timerMinutes) minute timer" : "Reset timer") {
-      timerEnd = Date().addingTimeInterval(TimeInterval(step.timerMinutes * 60))
+  private var defaultTimerSeconds: Double {
+    guard let step else { return 0 }
+    return CookingTimeMention.matches(in: step.detail).first.map { Double($0.seconds) } ?? Double(step.timerMinutes) * 60
+  }
+
+  private var timerButton: some View {
+    Button(timerEnd == nil ? "Start timer" : "Reset timer") {
+      timerEnd = .now.addingTimeInterval(defaultTimerSeconds)
     }
     .buttonStyle(.bordered)
-    .tint(Color.miseOlive)
+    .tint(palette.accent)
     .frame(minHeight: 44)
     .accessibilityHint(timerEnd == nil ? "Starts a timer for this cooking step." : "Starts the step timer over.")
   }
@@ -759,7 +817,7 @@ private struct CookingModeView: View {
         .frame(maxWidth: .infinity, minHeight: 50)
     }
     .buttonStyle(.borderedProminent)
-    .tint(Color.miseOlive)
+    .tint(palette.strongAccent)
   }
 }
 

@@ -3,12 +3,15 @@ import SwiftUI
 import UIKit
 
 struct CookingSheet: View {
+  @KitchenPalette private var palette
   @Environment(\.dismiss) private var dismiss
   @Environment(\.dynamicTypeSize) private var dynamicTypeSize
   @State private var confirmsEnding = false
+  @State private var showsIngredients = false
   @State private var showsCompletionError = false
 
   var cooking: CookingSessionStore
+  var fallbackIngredients: [String] = []
   var recordCompletion: (UUID) throws -> Void
 
   var body: some View {
@@ -18,10 +21,18 @@ struct CookingSheet: View {
           HStack(alignment: .top) {
             Text(session.recipeName)
               .font(.headline)
-              .foregroundStyle(Color.miseInk)
+              .foregroundStyle(palette.ink)
               .accessibilityAddTraits(.isHeader)
               .padding(.vertical, 12)
             Spacer()
+            Button("Ingredients", systemImage: "list.bullet") { showsIngredients = true }
+              .labelStyle(.iconOnly)
+              .buttonStyle(.glass)
+              .frame(minWidth: 44, minHeight: 44)
+              .popover(isPresented: $showsIngredients) {
+                CookingIngredientsPeek(ingredients: session.ingredientMeasurements ?? fallbackIngredients)
+                  .presentationCompactAdaptation(.popover)
+              }
             Button("Minimize cooking", systemImage: "chevron.down") { dismiss() }
               .labelStyle(.iconOnly)
               .buttonStyle(.glass)
@@ -35,7 +46,7 @@ struct CookingSheet: View {
           }
 
           ProgressView(value: Double(session.stepIndex + 1), total: Double(session.steps.count))
-            .tint(Color.miseOlive)
+            .tint(palette.accent)
             .accessibilityHidden(true)
 
           Text("Step \(session.stepIndex + 1) of \(session.steps.count) · Serves \(session.servings)")
@@ -44,15 +55,15 @@ struct CookingSheet: View {
 
           Text(session.stepTitle)
             .font(.system(.largeTitle, design: .serif, weight: .semibold))
-            .foregroundStyle(Color.miseInk)
+            .foregroundStyle(palette.ink)
             .accessibilityAddTraits(.isHeader)
 
-          Text(session.step.instructions)
-            .font(.title3)
-            .foregroundStyle(.secondary)
-            .frame(maxWidth: .infinity, alignment: .leading)
+          CookingInstructionText(instruction: session.step.measuredInstructions ?? session.step.instructions) { seconds in
+            Task { await cooking.startTimer(seconds: seconds) }
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
 
-          if session.step.timerMinutes > 0 {
+          if session.step.defaultTimerSeconds > 0 || session.timers[session.stepIndex] != nil || cooking.timerMessage != nil {
             stepTimer(for: session)
           }
 
@@ -67,14 +78,14 @@ struct CookingSheet: View {
         .frame(maxWidth: .infinity)
       }
       .id(session.stepIndex)
-      .background(Color.misePaper)
+      .background(palette.paper)
       .safeAreaInset(edge: .bottom, spacing: 0) {
         stepControls(for: session)
           .padding(.horizontal, 24)
           .padding(.vertical, 12)
           .frame(maxWidth: 650)
           .frame(maxWidth: .infinity)
-          .background(.regularMaterial)
+          .background(palette.surface)
       }
       .confirmationDialog("End this cooking session?", isPresented: $confirmsEnding, titleVisibility: .visible) {
         Button("End cooking", role: .destructive, action: finish)
@@ -110,7 +121,7 @@ struct CookingSheet: View {
     }
     .padding(16)
     .frame(maxWidth: .infinity, alignment: .leading)
-    .background(Color.miseSurface, in: RoundedRectangle(cornerRadius: 18))
+    .background(palette.surface, in: RoundedRectangle(cornerRadius: 18))
   }
 
   private func timerStatus(for session: CookingSession) -> some View {
@@ -130,7 +141,7 @@ struct CookingSheet: View {
           .font(.subheadline)
           .foregroundStyle(.secondary)
         } else {
-          Text(Duration.seconds(Double(session.step.timerMinutes) * 60).formatted(.units(allowed: [.hours, .minutes], width: .wide)))
+          Text(Duration.seconds(session.step.defaultTimerSeconds).formatted(.units(allowed: [.hours, .minutes, .seconds], width: .wide)))
             .font(.subheadline)
             .foregroundStyle(.secondary)
         }
@@ -138,7 +149,7 @@ struct CookingSheet: View {
     } icon: {
       Image(systemName: "timer")
         .font(.title2)
-        .foregroundStyle(Color.miseOlive)
+        .foregroundStyle(palette.accent)
     }
   }
 
@@ -154,7 +165,7 @@ struct CookingSheet: View {
       }
     }
     .buttonStyle(.bordered)
-    .tint(Color.miseOlive)
+    .tint(palette.accent)
     .controlSize(.large)
   }
 
@@ -187,9 +198,10 @@ struct CookingSheet: View {
           .frame(maxWidth: .infinity, minHeight: 36)
       }
       .buttonStyle(.borderedProminent)
+      .tint(palette.strongAccent)
     }
     .controlSize(.large)
-    .tint(Color.miseOlive)
+    .tint(palette.accent)
   }
 
   private func move(by offset: Int, in session: CookingSession) {

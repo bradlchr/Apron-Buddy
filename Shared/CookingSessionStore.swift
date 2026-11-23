@@ -29,11 +29,20 @@ final class CookingSessionStore {
 
   func start(_ newSession: CookingSession) {
     guard !newSession.steps.isEmpty else { return }
-    if session?.recipeID != newSession.recipeID {
+    if session?.recipeID != newSession.recipeID || session?.libraryID != newSession.libraryID {
       finish()
       save(newSession)
     }
     requestPresentation()
+  }
+
+  func setStepMeasurements(_ instructions: [String], for id: UUID, resolved: Bool) {
+    guard var session, session.id == id, session.steps.count == instructions.count else { return }
+    for index in session.steps.indices {
+      session.steps[index].measuredInstructions = instructions[index]
+    }
+    session.resolvedStepMeasurements = resolved
+    save(session)
   }
 
   func requestPresentation() {
@@ -114,9 +123,10 @@ final class CookingSessionStore {
     }
   }
 
-  func startTimer() async {
-    guard let current = session, current.step.timerMinutes > 0,
-          current.timers[current.stepIndex] == nil, !isStartingTimer else { return }
+  func startTimer(seconds: Int? = nil) async {
+    guard let current = session, current.timers[current.stepIndex] == nil, !isStartingTimer else { return }
+    let duration = seconds.map(Double.init) ?? current.step.defaultTimerSeconds
+    guard duration > 0 else { return }
     isStartingTimer = true
     timerMessage = nil
     needsTimerPermission = false
@@ -145,7 +155,6 @@ final class CookingSessionStore {
         metadata: CookingTimerMetadata(sessionID: current.id, title: title),
         tintColor: .green
       )
-      let duration = TimeInterval(current.step.timerMinutes) * 60
       let id = UUID()
       let startedAt = Date.now
       _ = try await manager.schedule(id: id, configuration: .timer(duration: duration, attributes: attributes))

@@ -82,8 +82,8 @@ struct GroceryListItem: Codable, Hashable, Identifiable, Sendable {
 
   var displayText: String {
     guard amount > 0 else { return name }
-    let quantity = amount.formatted(.number.precision(.fractionLength(0...2)))
-    let unitText = unit.isEmpty ? "" : " \(unit)"
+    let quantity = KitchenQuantity.format(amount)
+    let unitText = unit.isEmpty ? "" : " \(KitchenQuantity.unitLabel(unit, amount: amount))"
     return "\(quantity)\(unitText) \(name)"
   }
 }

@@ -3,6 +3,7 @@ import SwiftData
 import SwiftUI
 
 struct CookbooksView: View {
+  @KitchenPalette private var palette
   @Environment(\.modelContext) private var modelContext
   @Query(sort: \Cookbook.createdAt, order: .forward) private var cookbooks: [Cookbook]
   var recipes: [Recipe]
@@ -31,7 +32,7 @@ struct CookbooksView: View {
           } actions: {
             Button("New cookbook", systemImage: "plus") { isCreatingCookbook = true }
               .buttonStyle(.borderedProminent)
-              .tint(Color.miseOlive)
+              .tint(palette.accent)
           }
         } else {
           List {
@@ -41,15 +42,15 @@ struct CookbooksView: View {
               } label: {
                 CookbookRow(cookbook: cookbook, recipeCount: recipes.filter { $0.cookbookIDs.contains(cookbook.id) }.count)
               }
-              .listRowBackground(Color.miseSurface)
+              .listRowBackground(palette.surface)
             }
             .onDelete(perform: deleteCookbooks)
           }
           .scrollContentBackground(.hidden)
-          .background(Color.misePaper)
+          .background(palette.paper)
         }
       }
-      .background(Color.misePaper)
+      .background(palette.paper)
       .navigationTitle("Cookbooks")
       .toolbar {
         ToolbarItem(placement: .primaryAction) {
@@ -79,13 +80,14 @@ struct CookbooksView: View {
 }
 
 private struct CookbookRow: View {
+  @KitchenPalette private var palette
   var cookbook: Cookbook
   var recipeCount: Int
 
   var body: some View {
     HStack(spacing: 15) {
       ZStack {
-        RoundedRectangle(cornerRadius: 13).fill(Color.miseOlive.gradient)
+        RoundedRectangle(cornerRadius: 13).fill(palette.accent.gradient)
         Image(systemName: cookbook.isCloudShared ? "person.2.fill" : "book.closed.fill")
           .font(.title3.weight(.medium))
           .foregroundStyle(.white)
@@ -96,7 +98,7 @@ private struct CookbookRow: View {
       VStack(alignment: .leading, spacing: 4) {
         Text(cookbook.name)
           .font(.headline)
-          .foregroundStyle(Color.miseInk)
+          .foregroundStyle(palette.ink)
         Text(cookbook.detail.isEmpty ? "\(recipeCount) recipes" : cookbook.detail)
           .font(.subheadline)
           .foregroundStyle(.secondary)
@@ -104,7 +106,7 @@ private struct CookbookRow: View {
         if cookbook.isCloudShared {
           Label("Shared", systemImage: "person.2")
             .font(.caption.weight(.medium))
-            .foregroundStyle(Color.miseOlive)
+            .foregroundStyle(palette.accent)
         }
       }
       Spacer()
@@ -155,7 +157,9 @@ private struct CookbookEditorView: View {
 }
 
 struct CookbookDetailView: View {
+  @KitchenPalette private var palette
   @Environment(\.modelContext) private var modelContext
+  @Environment(\.householdLibrary) private var householdLibrary
   var cookbook: Cookbook
   var recipes: [Recipe]
   @State private var isManagingRecipes = false
@@ -179,7 +183,7 @@ struct CookbookDetailView: View {
             } label: {
               CookbookRecipeRow(recipe: recipe)
             }
-            .listRowBackground(Color.miseSurface)
+            .listRowBackground(palette.surface)
             .contextMenu {
               Button("Remove from cookbook", systemImage: "minus.circle") {
                 recipe.remove(from: cookbook.id)
@@ -194,22 +198,26 @@ struct CookbookDetailView: View {
       } header: {
         Text("\(cookbookRecipes.count) recipes")
       }
+
     }
     .scrollContentBackground(.hidden)
-    .background(Color.misePaper)
+    .background(palette.paper)
     .navigationTitle(cookbook.name)
     .toolbar {
       ToolbarItemGroup(placement: .primaryAction) {
         Button("Add recipes", systemImage: "plus") { isManagingRecipes = true }
           .accessibilityLabel("Add or copy recipes")
-        Button("Share cookbook", systemImage: "person.crop.circle.badge.plus") {
+          .disabled(cookbook.isSharedCopy && !cookbook.canEditSharedCopy)
+        if !cookbook.isSharedCopy && householdLibrary?.isActive != true {
+          Button("Share cookbook", systemImage: "person.crop.circle.badge.plus") {
           cookbook.isCloudShared = true
           cookbook.cloudZoneName = CloudKitCookbookStore.zoneID(for: cookbook.id).zoneName
           cookbook.cloudOwnerName = CKCurrentUserDefaultName
           try? modelContext.save()
           shareSnapshot = CloudKitCookbookStore.snapshot(cookbook: cookbook, recipes: recipes)
         }
-        .accessibilityLabel("Share cookbook with CloudKit")
+          .accessibilityLabel("Share cookbook with CloudKit")
+        }
       }
     }
     .sheet(isPresented: $isManagingRecipes) {
@@ -220,13 +228,13 @@ struct CookbookDetailView: View {
         VStack(spacing: 18) {
           Image(systemName: "person.2.crop.square.stack")
             .font(.system(size: 42))
-            .foregroundStyle(Color.miseOlive)
+            .foregroundStyle(palette.accent)
             .frame(width: 86, height: 86)
-            .background(Color.miseSage, in: RoundedRectangle(cornerRadius: 24))
+            .background(palette.softAccent, in: RoundedRectangle(cornerRadius: 24))
             .accessibilityHidden(true)
           Text("Share \(snapshot.name)")
             .font(.title2.weight(.semibold))
-            .foregroundStyle(Color.miseInk)
+            .foregroundStyle(palette.ink)
           Text("Apron Buddy will prepare a private iCloud cookbook. Choose people and whether they can make changes in Apple’s sharing sheet.")
             .font(.subheadline)
             .foregroundStyle(.secondary)
@@ -238,11 +246,11 @@ struct CookbookDetailView: View {
               .frame(height: 48)
           }
           .buttonStyle(.borderedProminent)
-          .tint(Color.miseOlive)
+          .tint(palette.accent)
         }
         .padding(28)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.misePaper)
+        .background(palette.paper)
         .navigationTitle("Share cookbook")
         .toolbar {
           ToolbarItem(placement: .cancellationAction) {
@@ -290,6 +298,7 @@ struct CookbookDetailView: View {
 }
 
 private struct CookbookRecipeRow: View {
+  @KitchenPalette private var palette
   var recipe: Recipe
 
   var body: some View {
@@ -300,7 +309,7 @@ private struct CookbookRecipeRow: View {
       VStack(alignment: .leading, spacing: 4) {
         Text(recipe.name)
           .font(.headline)
-          .foregroundStyle(Color.miseInk)
+          .foregroundStyle(palette.ink)
           .lineLimit(2)
         Text("\(recipe.category) · \(recipe.prepMinutes + recipe.cookMinutes) min")
           .font(.subheadline)
@@ -310,7 +319,7 @@ private struct CookbookRecipeRow: View {
       if recipe.rating > 0 {
         Label("\(recipe.rating) out of 5 stars", systemImage: "star.fill")
           .font(.caption.weight(.semibold))
-          .foregroundStyle(Color.miseOlive)
+          .foregroundStyle(palette.accent)
           .labelStyle(.titleAndIcon)
       }
     }
@@ -319,6 +328,7 @@ private struct CookbookRecipeRow: View {
 }
 
 private struct CookbookRecipePicker: View {
+  @KitchenPalette private var palette
   @Environment(\.dismiss) private var dismiss
   @Environment(\.modelContext) private var modelContext
   var cookbook: Cookbook
@@ -363,10 +373,10 @@ private struct CookbookRecipePicker: View {
               HStack(spacing: 12) {
                 Image(systemName: selectedIDs.contains(recipe.id) ? "checkmark.circle.fill" : "circle")
                   .font(.title3)
-                  .foregroundStyle(selectedIDs.contains(recipe.id) ? Color.miseOlive : Color.secondary)
+                  .foregroundStyle(selectedIDs.contains(recipe.id) ? palette.accent : Color.secondary)
                   .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 3) {
-                  Text(recipe.name).font(.headline).foregroundStyle(Color.miseInk)
+                  Text(recipe.name).font(.headline).foregroundStyle(palette.ink)
                   Text(recipe.category).font(.caption).foregroundStyle(.secondary)
                 }
                 Spacer()
@@ -401,12 +411,12 @@ private struct CookbookRecipePicker: View {
           Button("Add selected · \(selectedIDs.count)", systemImage: "plus") { addSelected() }
             .frame(maxWidth: .infinity, minHeight: 46)
             .buttonStyle(.borderedProminent)
-            .tint(Color.miseOlive)
+            .tint(palette.accent)
             .accessibilityLabel("Add \(selectedIDs.count) selected recipes")
           Button("Copy selected · \(selectedIDs.count)", systemImage: "document.on.document") { copySelected() }
             .frame(maxWidth: .infinity, minHeight: 46)
             .buttonStyle(.bordered)
-            .tint(Color.miseOlive)
+            .tint(palette.accent)
             .accessibilityLabel("Copy \(selectedIDs.count) selected recipes")
         }
         .padding()

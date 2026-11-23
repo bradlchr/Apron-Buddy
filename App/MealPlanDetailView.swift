@@ -3,6 +3,7 @@ import SwiftData
 import SwiftUI
 
 struct MealPlanDetailView: View {
+  @KitchenPalette private var palette
   @Environment(\.modelContext) private var modelContext
   @State private var isShowingGroceries = false
 
@@ -61,7 +62,8 @@ struct MealPlanDetailView: View {
             isShowingGroceries = true
           }
           .buttonStyle(.borderedProminent)
-          .tint(Color.miseOlive)
+          .tint(palette.strongAccent)
+          Button("Open grocery list", systemImage: "list.bullet") { isShowingGroceries = true }
         } else {
           Label("\(plan.groceryItems.count) items saved in Apron Buddy", systemImage: "checklist")
           Button("Open grocery list", systemImage: "cart") { isShowingGroceries = true }
@@ -69,7 +71,7 @@ struct MealPlanDetailView: View {
       }
     }
     .scrollContentBackground(.hidden)
-    .background(Color.misePaper)
+    .background(palette.paper)
     .navigationTitle(plan.title)
     .sheet(isPresented: $isShowingGroceries) {
       GroceryListView(plan: plan)
@@ -94,6 +96,7 @@ struct MealPlanDetailView: View {
 }
 
 private struct MealPlanSlotRow: View {
+  @KitchenPalette private var palette
   var slot: MealPlanSlot
   var recipe: Recipe?
   var peopleEating: Int
@@ -102,9 +105,9 @@ private struct MealPlanSlotRow: View {
     HStack(spacing: 12) {
       Image(systemName: slot.meal.symbol)
         .font(.subheadline.weight(.semibold))
-        .foregroundStyle(Color.miseOlive)
+        .foregroundStyle(palette.accent)
         .frame(width: 36, height: 36)
-        .background(Color.miseSage, in: Circle())
+        .background(palette.softAccent, in: Circle())
         .accessibilityHidden(true)
       VStack(alignment: .leading, spacing: 3) {
         Text(slot.meal.title)
@@ -113,11 +116,11 @@ private struct MealPlanSlotRow: View {
         if slot.isSkipped {
           Text(slot.note.isEmpty ? "No meal planned" : slot.note)
             .font(.subheadline.weight(.medium))
-            .foregroundStyle(Color.miseInk)
+            .foregroundStyle(palette.ink)
         } else {
           Text(recipe?.name ?? "Recipe unavailable")
             .font(.subheadline.weight(.medium))
-            .foregroundStyle(Color.miseInk)
+            .foregroundStyle(palette.ink)
           if let recipe {
             Text(slot.isLeftovers
               ? "Leftovers · serves \(slot.servings)"
@@ -143,8 +146,11 @@ private struct GroceryGroup: Identifiable {
 }
 
 private struct GroceryListView: View {
+  @KitchenPalette private var palette
   @Environment(\.dismiss) private var dismiss
   @Environment(\.modelContext) private var modelContext
+  @Environment(\.householdLibrary) private var householdLibrary
+  @State private var newItem = ""
   @State private var reminderLists: [ReminderListOption] = []
   @State private var isSelectingReminderList = false
   @State private var isShowingError = false
@@ -160,6 +166,18 @@ private struct GroceryListView: View {
   var body: some View {
     NavigationStack {
       List {
+        Section {
+          HStack {
+            TextField("Add a grocery item", text: $newItem)
+              .onSubmit(addItem)
+            Button("Add", systemImage: "plus", action: addItem)
+              .labelStyle(.iconOnly)
+              .buttonStyle(.borderless)
+              .disabled(newItem.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+          }
+        }
+        .listRowBackground(palette.surface)
+
         if groups.isEmpty {
           ContentUnavailableView("No groceries to show", systemImage: "cart", description: Text("Add at least one recipe to this plan, then generate the grocery list again."))
         } else {
@@ -169,10 +187,10 @@ private struct GroceryListView: View {
                 Button { toggle(item) } label: {
                   HStack(spacing: 11) {
                     Image(systemName: item.isChecked ? "checkmark.circle.fill" : "circle")
-                      .foregroundStyle(item.isChecked ? Color.miseOlive : Color.secondary)
+                      .foregroundStyle(item.isChecked ? palette.accent : Color.secondary)
                       .accessibilityHidden(true)
                     Text(item.displayText)
-                      .foregroundStyle(item.isChecked ? Color.secondary : Color.miseInk)
+                      .foregroundStyle(item.isChecked ? Color.secondary : palette.ink)
                       .strikethrough(item.isChecked)
                     Spacer(minLength: 0)
                   }
@@ -182,6 +200,12 @@ private struct GroceryListView: View {
                 .accessibilityLabel(item.displayText)
                 .accessibilityValue(item.isChecked ? "Checked" : "Not checked")
                 .accessibilityHint("Double-tap to change the checked state.")
+                .swipeActions {
+                  Button("Remove", systemImage: "trash", role: .destructive) {
+                    let items = plan.groceryItems.filter { $0.id != item.id }
+                    save(items)
+                  }
+                }
               }
             }
           }
@@ -189,7 +213,7 @@ private struct GroceryListView: View {
 
         Section("Keep your list") {
           Label("Saved in Apron Buddy", systemImage: "checkmark.circle.fill")
-            .foregroundStyle(Color.miseOlive)
+            .foregroundStyle(palette.accent)
           if !plan.reminderListName.isEmpty {
             Label("Also added to \(plan.reminderListName)", systemImage: "checkmark")
               .font(.subheadline)
@@ -202,8 +226,17 @@ private struct GroceryListView: View {
         }
       }
       .scrollContentBackground(.hidden)
-      .background(Color.misePaper)
+      .background(palette.paper)
       .navigationTitle("Groceries")
+      .tint(palette.accent)
+      .onAppear {
+        guard householdLibrary?.isActive != true else { return }
+        let normalized = GroceryListBuilder.normalized(plan.groceryItems)
+        if normalized != plan.groceryItems {
+          plan.groceryItems = normalized
+          try? modelContext.save()
+        }
+      }
       .toolbar {
         ToolbarItem(placement: .confirmationAction) {
           Button("Done") { dismiss() }
@@ -227,8 +260,32 @@ private struct GroceryListView: View {
     var items = plan.groceryItems
     guard let index = items.firstIndex(where: { $0.id == item.id }) else { return }
     items[index].isChecked.toggle()
+    save(items)
+  }
+
+  private func addItem() {
+    let name = IngredientNormalization.tidy(newItem)
+    guard !name.isEmpty else { return }
+    let items = plan.groceryItems + [.init(name: name, amount: 0, unit: "", category: "Other")]
+    if save(items) { newItem = "" }
+  }
+
+  @discardableResult
+  private func save(_ items: [GroceryListItem]) -> Bool {
+    let previous = plan.groceryItems
     plan.groceryItems = items
-    try? modelContext.save()
+    do {
+      try modelContext.save()
+      if householdLibrary?.isActive == true {
+        Task { await householdLibrary?.synchronize() }
+      }
+      return true
+    } catch {
+      plan.groceryItems = previous
+      errorMessage = error.localizedDescription
+      isShowingError = true
+      return false
+    }
   }
 
   @MainActor

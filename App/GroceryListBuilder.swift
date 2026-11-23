@@ -9,32 +9,65 @@ enum GroceryListBuilder {
   private static let categoryOrder = ["Produce", "Meat & seafood", "Dairy & eggs", "Bakery", "Pantry", "Other"]
 
   static func build(slots: [MealPlanSlot], recipes: [Recipe]) -> [GroceryListItem] {
-    let recipesByID = Dictionary(uniqueKeysWithValues: recipes.map { ($0.id, $0) })
-    var grouped: [IngredientKey: GroceryListItem] = [:]
-
-    for slot in slots where !slot.isSkipped && !slot.isLeftovers {
-      guard let recipeID = slot.recipeID, let recipe = recipesByID[recipeID] else { continue }
+    let recipesByID = Dictionary(recipes.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+    let items = slots.filter { !$0.isSkipped && !$0.isLeftovers }.flatMap { slot -> [GroceryListItem] in
+      guard let recipeID = slot.recipeID, let recipe = recipesByID[recipeID] else { return [] }
       let scale = Double(max(1, slot.servings)) / Double(max(1, recipe.servings))
+      return recipe.ingredients.map { ingredient in
+        let quantity = ingredient.amount.isFinite ? max(0, ingredient.amount) : 0
+        return GroceryListItem(name: ingredient.name, amount: quantity * scale, unit: ingredient.unit, category: "")
+      }
+    }
+    return normalized(items)
+  }
 
-      for ingredient in recipe.ingredients {
-        let displayName = ingredient.name.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !displayName.isEmpty else { continue }
-        let key = IngredientKey(name: displayName.localizedLowercase, unit: ingredient.unit.trimmingCharacters(in: .whitespacesAndNewlines).localizedLowercase)
-        if var existing = grouped[key] {
-          existing.amount += max(0, ingredient.amount) * scale
-          grouped[key] = existing
-        } else {
-          grouped[key] = GroceryListItem(
-            name: displayName,
-            amount: max(0, ingredient.amount) * scale,
-            unit: ingredient.unit.trimmingCharacters(in: .whitespacesAndNewlines),
-            category: category(for: displayName)
-          )
-        }
+  static func normalized(_ items: [GroceryListItem]) -> [GroceryListItem] {
+    var grouped: [IngredientKey: GroceryListItem] = [:]
+    for item in items {
+      let clean = IngredientNormalization.clean(.init(amount: item.amount, unit: item.unit, name: item.name))
+      let displayName = IngredientNormalization.groceryName(for: clean)
+      guard !displayName.isEmpty else { continue }
+      let name = IngredientNormalization.key(displayName)
+      let unit = IngredientNormalization.key(clean.unit)
+      let measurement = IngredientNormalization.measurement(for: unit, ingredientName: name)
+      let key = IngredientKey(name: name, unit: measurement?.family ?? unit)
+      let amount = clean.amount.isFinite ? max(0, clean.amount) * (measurement?.factor ?? 1) : 0
+      if var existing = grouped[key] {
+        existing.amount += amount
+        existing.isChecked = existing.isChecked && item.isChecked
+        grouped[key] = existing
+      } else {
+        var entry = item
+        entry.name = displayName
+        entry.amount = amount
+        entry.unit = key.unit
+        entry.category = item.category.isEmpty ? category(for: displayName) : item.category
+        grouped[key] = entry
       }
     }
 
-    return grouped.values.sorted { left, right in
+    let butterKeys = ["salted butter", "unsalted butter"].map { IngredientKey(name: $0, unit: "usVolume") }
+    if let salted = grouped[butterKeys[0]], let unsalted = grouped[butterKeys[1]] {
+      let portions = [salted, unsalted].map { item in
+        let volume = IngredientNormalization.displayMeasurement(item.amount, family: item.unit)
+        let kind = item.name.localizedCaseInsensitiveContains("unsalted") ? "unsalted" : "salted"
+        return "\(KitchenQuantity.format(volume.amount)) \(volume.unit) \(kind)"
+      }
+      grouped[butterKeys[0]] = nil
+      grouped[butterKeys[1]] = nil
+      grouped[IngredientKey(name: "butter with specified salt", unit: "usVolume")] = GroceryListItem(
+        id: salted.id, name: "butter (\(portions.joined(separator: ", ")))", amount: salted.amount + unsalted.amount,
+        unit: "usVolume", category: "Dairy & eggs", isChecked: salted.isChecked && unsalted.isChecked
+      )
+    }
+
+    return grouped.values.map { item in
+      var item = item
+      let measurement = IngredientNormalization.displayMeasurement(item.amount, family: item.unit)
+      item.amount = measurement.amount
+      item.unit = measurement.unit
+      return item
+    }.sorted { left, right in
       let leftIndex = categoryOrder.firstIndex(of: left.category) ?? categoryOrder.count
       let rightIndex = categoryOrder.firstIndex(of: right.category) ?? categoryOrder.count
       if leftIndex != rightIndex { return leftIndex < rightIndex }

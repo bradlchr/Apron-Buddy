@@ -49,7 +49,7 @@ struct SharedGroceryItem: Codable, Hashable, Identifiable, Sendable {
 
   var displayText: String {
     guard amount > 0 else { return name }
-    let quantity = amount.formatted(.number.precision(.fractionLength(0...2)))
+    let quantity = KitchenQuantity.format(amount)
     return "\(quantity)\(unit.isEmpty ? "" : " \(unit)") \(name)"
   }
 }

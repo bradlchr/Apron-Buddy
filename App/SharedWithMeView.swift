@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct SharedWithMeView: View {
+  @KitchenPalette private var palette
   var recipes: [Recipe]
   var cookbooks: [Cookbook]
   var wrapsNavigationStack = true
@@ -45,7 +46,7 @@ struct SharedWithMeView: View {
                   } label: {
                     SharedRecipeRow(recipe: recipe)
                   }
-                  .listRowBackground(Color.miseSurface)
+                  .listRowBackground(palette.surface)
                 }
               }
             }
@@ -58,30 +59,30 @@ struct SharedWithMeView: View {
                   } label: {
                     HStack(spacing: 12) {
                       Image(systemName: "books.vertical.fill")
-                        .foregroundStyle(Color.miseOlive)
+                        .foregroundStyle(palette.accent)
                         .frame(width: 38, height: 38)
-                        .background(Color.miseSage, in: RoundedRectangle(cornerRadius: 11))
+                        .background(palette.softAccent, in: RoundedRectangle(cornerRadius: 11))
                         .accessibilityHidden(true)
                       VStack(alignment: .leading, spacing: 3) {
                         Text(cookbook.name)
                           .font(.headline)
-                          .foregroundStyle(Color.miseInk)
+                          .foregroundStyle(palette.ink)
                         Text("\(recipes.filter { $0.cookbookIDs.contains(cookbook.id) }.count) recipes")
                           .font(.caption)
                           .foregroundStyle(.secondary)
                       }
                     }
                   }
-                  .listRowBackground(Color.miseSurface)
+                  .listRowBackground(palette.surface)
                 }
               }
             }
           }
           .scrollContentBackground(.hidden)
-          .background(Color.misePaper)
+          .background(palette.paper)
         }
       }
-      .background(Color.misePaper)
+      .background(palette.paper)
       .navigationTitle("Shared with me")
       .toolbar {
         if let cloudSyncStatus, let onCloudSyncAction {
@@ -92,19 +93,20 @@ struct SharedWithMeView: View {
 }
 
 private struct SharedRecipeRow: View {
+  @KitchenPalette private var palette
   var recipe: Recipe
 
   var body: some View {
     HStack(spacing: 12) {
       Image(systemName: "fork.knife")
-        .foregroundStyle(Color.miseOlive)
+        .foregroundStyle(palette.accent)
         .frame(width: 38, height: 38)
-        .background(Color.miseSage, in: RoundedRectangle(cornerRadius: 11))
+        .background(palette.softAccent, in: RoundedRectangle(cornerRadius: 11))
         .accessibilityHidden(true)
       VStack(alignment: .leading, spacing: 3) {
         Text(recipe.name)
           .font(.headline)
-          .foregroundStyle(Color.miseInk)
+          .foregroundStyle(palette.ink)
         Text(recipe.category)
           .font(.caption)
           .foregroundStyle(.secondary)
@@ -112,7 +114,7 @@ private struct SharedRecipeRow: View {
       Spacer()
       Image(systemName: "person.crop.circle.badge.checkmark")
         .font(.caption)
-        .foregroundStyle(Color.miseOlive)
+        .foregroundStyle(palette.accent)
         .accessibilityLabel("Shared with you")
     }
     .padding(.vertical, 3)
@@ -120,6 +122,7 @@ private struct SharedRecipeRow: View {
 }
 
 struct RecipeQuickSearchView: View {
+  @KitchenPalette private var palette
   @Environment(\.dismiss) private var dismiss
   @State private var query = ""
 
@@ -150,12 +153,12 @@ struct RecipeQuickSearchView: View {
               SharedRecipeRow(recipe: recipe)
             }
             .buttonStyle(.plain)
-            .listRowBackground(Color.miseSurface)
+            .listRowBackground(palette.surface)
           }
         }
       }
       .scrollContentBackground(.hidden)
-      .background(Color.misePaper)
+      .background(palette.paper)
       .navigationTitle("Search recipes")
       .searchable(text: $query, prompt: "Recipe name or ingredient")
       .toolbar {

@@ -2,6 +2,7 @@ import SwiftData
 import SwiftUI
 
 struct MealPlansView: View {
+  @KitchenPalette private var palette
   @Query(sort: \MealPlan.startDate, order: .reverse) private var plans: [MealPlan]
   @State private var isCreatingPlan = false
   @State private var navigationPath: [UUID] = []
@@ -43,7 +44,7 @@ struct MealPlansView: View {
           } actions: {
             Button("Create a meal plan", systemImage: "plus") { isCreatingPlan = true }
               .buttonStyle(.borderedProminent)
-              .tint(Color.miseOlive)
+              .tint(palette.accent)
           }
         } else if visiblePlans.isEmpty {
           ContentUnavailableView("No matching meal plans", systemImage: "magnifyingglass", description: Text("Try another search."))
@@ -53,14 +54,14 @@ struct MealPlansView: View {
               NavigationLink(value: plan.id) {
                 MealPlanRow(plan: plan)
               }
-              .listRowBackground(Color.miseSurface)
+              .listRowBackground(palette.surface)
             }
           }
           .scrollContentBackground(.hidden)
-          .background(Color.misePaper)
+          .background(palette.paper)
         }
       }
-      .background(Color.misePaper)
+      .background(palette.paper)
       .navigationTitle("Meal plans")
       .toolbar {
         ToolbarItem(placement: .primaryAction) {
@@ -93,6 +94,7 @@ struct MealPlansView: View {
 }
 
 private struct MealPlanRow: View {
+  @KitchenPalette private var palette
   var plan: MealPlan
 
   private var lastDate: Date {
@@ -103,21 +105,21 @@ private struct MealPlanRow: View {
     HStack(spacing: 14) {
       Image(systemName: "calendar")
         .font(.title3.weight(.medium))
-        .foregroundStyle(Color.miseOlive)
+        .foregroundStyle(palette.accent)
         .frame(width: 48, height: 52)
-        .background(Color.miseSage, in: RoundedRectangle(cornerRadius: 13))
+        .background(palette.softAccent, in: RoundedRectangle(cornerRadius: 13))
         .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: 4) {
         Text(plan.title)
           .font(.headline)
-          .foregroundStyle(Color.miseInk)
+          .foregroundStyle(palette.ink)
         Text("\(plan.startDate.formatted(date: .abbreviated, time: .omitted)) – \(lastDate.formatted(date: .abbreviated, time: .omitted))")
           .font(.subheadline)
           .foregroundStyle(.secondary)
         Text("\(plan.slots.filter { !$0.isSkipped }.count) meals · \(plan.peopleEating) people")
           .font(.caption)
-          .foregroundStyle(Color.miseOlive)
+          .foregroundStyle(palette.accent)
       }
       Spacer(minLength: 0)
     }
