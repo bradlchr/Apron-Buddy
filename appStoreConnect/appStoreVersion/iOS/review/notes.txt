@@ -1,7 +1,9 @@
-No Apron Buddy account is required. The app includes sample recipes, and the recipe library and cooking mode work without signing in to iCloud. iCloud is required for syncing between devices and sharing recipes or cookbooks.
+No Apron Buddy account or sign-in is required for the included sample recipes, recipe editing, pantry filtering, planning, cooking, or PDF export. Household sharing is optional and uses the Apple Accounts of two participants.
 
-To review the cooking changes, open Recipes, choose a sample recipe such as Lemon herb roast chicken, and tap Start cooking. Advance to a timed step, then tap Start timer and allow the system alarm prompt. Swipe down on the cooking sheet to minimize it, and tap the green cooking bubble to resume at the same step. Lock the iPhone to see the recipe’s Live Activity with Previous and Next controls and the separate timer Live Activity. The Dynamic Island presentation depends on the device and available space.
+To try cooking, go to Recipes, open Maple oat pancakes, and tap Start cooking. Advance to Rest the batter to see inline measurements, the timer, and the ingredient peek in the top toolbar. The system requests alarm permission when needed. Swipe down to minimize the cooking sheet, scroll the recipe library, and tap the bubble between the active tab and Search to resume. Lock the phone to see the cooking Live Activity and, when a timer is running, its separate Live Activity.
 
-Tap Finish on the last step to record the Last Cooked date, or update it from the recipe tile’s options menu. The date helps rotate recipes in Tonight’s Pick and new meal plans.
+Use the gear button to open Settings. Appearance contains the themes and alternate app icons. Household lets a signed-in iCloud user create a library, optionally copy their personal recipes and plans, and invite a second iCloud user. Both users can update the household catalog, meal plans, and grocery lists.
 
-Apron Buddy also imports recipes from website links or documents, organizes recipes into cookbooks, and builds meal plans with grocery lists that can be exported to Reminders. Apple Intelligence is optional for meal plan suggestions.
+Chef’s Tip Jar is in Settings. The three consumable tip products are optional and unlock no features. The products are apronbuddy.tip.small, apronbuddy.tip.medium, and apronbuddy.tip.large.
+
+Apple Intelligence is optional. Recipe import, ingredient matching, and meal planning have on-device fallbacks when it is unavailable.

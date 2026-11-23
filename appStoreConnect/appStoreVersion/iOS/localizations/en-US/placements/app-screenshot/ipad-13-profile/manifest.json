@@ -1,19 +1,16 @@
 {
   "placements": [
     {
-      "fileName": "01-your-complete-kitchen-companion.png"
+      "fileName": "01-todays-pick.png"
     },
     {
-      "fileName": "02-scan-any-cookbook-page.png"
+      "fileName": "02-recipe-collection.png"
     },
     {
-      "fileName": "03-clip-web-and-pdfs.png"
+      "fileName": "03-measured-cooking-steps.png"
     },
     {
-      "fileName": "04-cook-hands-free.png"
-    },
-    {
-      "fileName": "05-plan-meals-in-minutes.png"
+      "fileName": "04-resume-cooking.png"
     }
   ]
 }

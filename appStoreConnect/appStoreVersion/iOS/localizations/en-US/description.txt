@@ -1,29 +1,16 @@
-Your Complete Kitchen Companion
-Every recipe, synced across iPhone, iPad, Mac & Watch.
+Keep family recipes, weeknight favorites, and new ideas in one kitchen. Apron Buddy helps you save recipes, decide what to cook, and follow each step on iPhone, iPad, Mac, and Apple Watch.
 
-Keep family favorites, web finds, and weeknight staples together in a searchable recipe library. Apron Buddy helps you bring recipes in, make them your own, plan what to cook, and follow each step in the kitchen.
+SAVE RECIPES FROM ANYWHERE
+Scan a cookbook page or import from the web, a PDF, a document, or an image. Review the ingredients and instructions before saving. Organize recipes into cookbooks, rate favorites, and add your own photos and notes.
 
-Scan Any Cookbook Page
-Turn printed pages and magazines into digital recipes in seconds.
-Capture one page or several with your camera. Apron Buddy reads the recipe so you can review and edit the ingredients and instructions before saving.
+COOK STEP BY STEP
+See measurements in the instructions, scale quantities for the people you're feeding, and group ingredients into sections like cake and frosting. Tap a time in the instructions to start a timer, or peek at the ingredient list without losing your place. On iPhone, resume cooking from the tab bar and check your step and timers in separate Live Activities. Follow steps and timers on Apple Watch.
 
-Clip From the Web & PDFs
-Skip the clutter—save just the ingredients and steps.
-Import a recipe from a website, PDF, text document, or recipe image. Batch import a folder of files, then review each recipe as it is added.
+MAKE A PLAN WITH WHAT YOU HAVE
+Filter your saved recipes by up to three ingredients in your pantry. Use your favorites and cooking history to find something you haven't made in a while. Build a meal plan, combine ingredients into a grocery list with readable fractions, and send the list to Reminders.
 
-Cook Hands-Free
-Follow steps and run timers right from your Apple Watch.
-Use step-by-step cooking mode on iPhone, iPad, or Mac. Start recipe timers from the instructions and continue cooking with the paired Apple Watch.
+SHARE A KITCHEN
+Use iCloud to keep your recipes and cookbooks in sync across devices. Invite someone to a shared Household library with recipes, cookbooks, meal plans, and grocery lists. Both members can add recipes, edit plans, and check off groceries.
 
-Plan Meals in Minutes
-Build your weekly menu and auto-generate your grocery list.
-Make a meal plan around your schedule, special occasions, and food preferences. Start with your own recipes, choose how many people are eating, and plan for leftovers. Generate a grocery list grouped by category, keep it in Apron Buddy, or add items to a Reminders list.
-
-MAKE YOUR RECIPE LIBRARY YOURS
-Create cookbooks, search and filter recipes, and add recipes to a cookbook from the recipe card. Rate and favorite dishes, write personal notes, save photos of the finished meal, and print recipes when you want a paper copy. Share a recipe or cookbook with others through iCloud.
-
-ADJUST AS YOU COOK
-Scale ingredient amounts when servings change and convert between measurement units. Edit imported recipes so the saved version matches the way you cook.
-
-YOUR APPLE DEVICES, IN SYNC
-Use Apron Buddy on iPhone, iPad, Mac, and Apple Watch. With iCloud enabled, your recipes and cookbooks stay in sync across your devices, ready for planning or cooking.
+MAKE IT YOURS
+Choose a theme and alternate iPhone or iPad app icon. Print a recipe or export a styled PDF for a binder or to share. Apron Buddy includes an optional Chef's Tip Jar.
