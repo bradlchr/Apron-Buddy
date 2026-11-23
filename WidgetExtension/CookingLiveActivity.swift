@@ -30,11 +30,8 @@ struct CookingLiveActivity: Widget {
       } compactTrailing: {
         CompactIslandContent {
           if let end = context.state.nextTimerEnd {
-            Text(timerInterval: min(.now, end)...end, countsDown: true, showsHours: true)
+            CompactCookingCountdown(interval: min(.now, end)...end)
               .font(.caption.monospacedDigit())
-              .lineLimit(1)
-              .minimumScaleFactor(0.7)
-              .frame(maxWidth: 64)
               .accessibilityLabel("Cooking timer")
           } else {
             stepProgress(context)

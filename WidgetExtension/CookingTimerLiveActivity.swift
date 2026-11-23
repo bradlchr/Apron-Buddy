@@ -22,9 +22,8 @@ struct CookingTimerLiveActivity: Widget {
           .accessibilityLabel("Step timer")
       } compactTrailing: {
         CompactIslandContent {
-          CookingTimerCountdown(mode: context.state.mode)
+          CookingTimerCountdown(mode: context.state.mode, compact: true)
             .font(.caption.monospacedDigit())
-            .frame(maxWidth: 55)
         } narrow: {
           EmptyView()
         }
@@ -76,13 +75,19 @@ private struct CookingTimerCard: View {
 
 private struct CookingTimerCountdown: View {
   var mode: AlarmPresentationState.Mode
+  var compact = false
 
   var body: some View {
     switch mode {
     case .countdown(let countdown):
-      Text(timerInterval: countdown.startDate...max(countdown.startDate, countdown.fireDate), countsDown: true, showsHours: true)
-        .lineLimit(1)
-        .minimumScaleFactor(0.75)
+      let interval = countdown.startDate...max(countdown.startDate, countdown.fireDate)
+      if compact {
+        CompactCookingCountdown(interval: interval)
+      } else {
+        Text(timerInterval: interval, countsDown: true, showsHours: true)
+          .lineLimit(1)
+          .minimumScaleFactor(0.75)
+      }
     case .paused(let paused):
       Text(Duration.seconds(max(0, paused.totalCountdownDuration - paused.previouslyElapsedDuration)).formatted(.time(pattern: .hourMinuteSecond)))
     case .alert:
